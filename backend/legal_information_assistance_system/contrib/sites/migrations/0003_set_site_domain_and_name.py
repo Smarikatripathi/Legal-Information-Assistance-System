@@ -5,7 +5,7 @@ https://cookiecutter-django.readthedocs.io/en/latest/5-help/faq.html#why-is-ther
 """
 from django.conf import settings
 from django.db import migrations
-
+from django.db import connection
 
 def _update_or_create_site_with_sequence(site_model, connection, domain, name):
     """Update or create the site with default ID and keep the DB sequence in sync."""
@@ -23,26 +23,39 @@ def _update_or_create_site_with_sequence(site_model, connection, domain, name):
         # site is created.
         # To avoid this, we need to manually update DB sequence and make sure it's
         # greater than the maximum value.
-        max_id = site_model.objects.order_by("-id").first().id
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT last_value from django_site_id_seq")
-            (current_id,) = cursor.fetchone()
-            if current_id <= max_id:
-                cursor.execute(
-                    "alter sequence django_site_id_seq restart with %s",
-                    [max_id + 1],
-                )
+        max_site = site_model.objects.order_by("-id").first()
+
+    if max_site and connection.vendor == "postgresql":
+        max_id = max_site.id
+
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT last_value from django_site_id_seq")
+        (current_id,) = cursor.fetchone()
+
+        if current_id <= max_id:
+            cursor.execute(
+                "ALTER SEQUENCE django_site_id_seq RESTART WITH %s",
+                [max_id + 1],
+            )
 
 
 def update_site_forward(apps, schema_editor):
-    """Set site domain and name."""
     Site = apps.get_model("sites", "Site")
-    _update_or_create_site_with_sequence(
-        Site,
-        schema_editor.connection,
-        "example.com",
-        "Legal Information Assistance System",
-    )
+
+    max_site = Site.objects.order_by("-id").first()
+
+    if max_site and connection.vendor == "postgresql":
+        max_id = max_site.id
+
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT last_value FROM django_site_id_seq")
+            (current_id,) = cursor.fetchone()
+
+            if current_id <= max_id:
+                cursor.execute(
+                    "ALTER SEQUENCE django_site_id_seq RESTART WITH %s",
+                    [max_id + 1],
+                )
 
 
 def update_site_backward(apps, schema_editor):
