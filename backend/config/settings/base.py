@@ -79,6 +79,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 # APPS
 # ------------------------------------------------------------------------------
 DJANGO_APPS = [
+    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -86,10 +87,11 @@ DJANGO_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # "django.contrib.humanize", # Handy template tags
-    "django.contrib.admin",
     "django.forms",
+    
 ]
 THIRD_PARTY_APPS = [
+    "jazzmin",
     "crispy_forms",
     "crispy_bootstrap5",
     "allauth",
@@ -106,6 +108,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "legal_information_assistance_system.users",
     "legal_ai",
+    
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -155,8 +158,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/dev/ref/settings/#middleware
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -180,6 +183,7 @@ STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 ]
+
 
 # MEDIA
 # ------------------------------------------------------------------------------
@@ -372,3 +376,10 @@ SPECTACULAR_SETTINGS = {
 }
 # Your stuff...
 # ------------------------------------------------------------------------------
+JAZZMIN_SETTINGS = {
+    "site_title": "Legal System Admin",
+    "site_header": "Legal Information Assistance System",
+    "site_brand": "Legal AI",
+    "welcome_sign": "Welcome to Legal Admin Panel",
+    "copyright": "Legal Project 2026",
+}

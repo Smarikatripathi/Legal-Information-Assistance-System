@@ -1,3 +1,54 @@
 from django.db import models
+from django.conf import settings
 
-# Create your models here.
+class LegalDocument(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+
+    document_type = models.CharField(
+        max_length=100,
+        choices=[
+            ("constitution", "Constitution"),
+            ("civil_code", "Civil Code"),
+            ("criminal_code", "Criminal Code"),
+            ("act", "Act"),
+            ("regulation", "Regulation"),
+        ]
+    )
+
+    file = models.FileField(upload_to="legal_docs/")
+    published_year = models.IntegerField(null=True, blank=True)
+
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+class DocumentChunk(models.Model):
+    document = models.ForeignKey(LegalDocument, on_delete=models.CASCADE)
+
+    chunk_index = models.IntegerField()
+    content = models.TextField()
+
+    embedding_id = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.document.title} - Chunk {self.chunk_index}"
+    
+from django.contrib.auth.models import User
+
+class UserProfile(models.Model):
+    ROLE_CHOICES = [
+        ("student", "Student"),
+        ("lawyer", "Lawyer"),
+        ("admin", "Admin"),
+    ]
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+
+    def __str__(self):
+        return self.user.username    
