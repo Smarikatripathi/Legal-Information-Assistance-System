@@ -1,6 +1,7 @@
 from django.contrib import admin
+from torch import embedding
 from .models import LegalDocument, DocumentChunk
-from .tasks import process_document_embeddings
+from .tasks import create_embeddings
 import threading
 
 @admin.register(LegalDocument)
@@ -15,7 +16,7 @@ class LegalDocumentAdmin(admin.ModelAdmin):
         # run only on new upload
         if not change:
             threading.Thread(
-                target=process_document_embeddings,
+                target=create_embeddings,
                 args=(obj.id,)
             ).start()
 
