@@ -1,6 +1,6 @@
 from .models import LegalDocument
 from .services.text_extract import extract_pdf_text
-from .services.smart_chunking import split_text
+from .services.smart_chunking import smart_chunk
 from .services.embedding import create_embeddings
 
 
@@ -13,7 +13,7 @@ def process_document_embeddings(document_id):
     text = extract_pdf_text(doc.file.path)
 
     # 2. Chunk text
-    chunks = split_text(text)
+    chunks = smart_chunk(text)
 
     print("Total chunks:", len(chunks))
 

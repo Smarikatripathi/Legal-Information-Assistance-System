@@ -24,16 +24,20 @@ class LegalDocument(models.Model):
     def __str__(self):
         return self.title
 
-class DocumentChunk(models.Model):
-    document = models.ForeignKey(LegalDocument, on_delete=models.CASCADE)
+class LegalChunk(models.Model):
+    doc = models.ForeignKey(LegalDocument, on_delete=models.CASCADE)
+    text = models.TextField()
 
-    chunk_index = models.IntegerField()
-    content = models.TextField()
+    # structured metadata (VERY IMPORTANT for legal system)
+    part = models.CharField(max_length=255, null=True, blank=True)
+    chapter = models.CharField(max_length=255, null=True, blank=True)
+    section = models.CharField(max_length=255, null=True, blank=True)
+    dhara = models.CharField(max_length=255, null=True, blank=True)
 
-    embedding_id = models.CharField(max_length=255, blank=True, null=True)
+    embedding_id = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.document.title} - Chunk {self.chunk_index}"
+        return f"{self.doc.title}"
     
 from django.contrib.auth.models import User
 

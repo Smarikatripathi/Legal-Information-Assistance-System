@@ -79,6 +79,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 # APPS
 # ------------------------------------------------------------------------------
 DJANGO_APPS = [
+    "jazzmin",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -91,7 +92,7 @@ DJANGO_APPS = [
     
 ]
 THIRD_PARTY_APPS = [
-    "jazzmin",
+    
     "crispy_forms",
     "crispy_bootstrap5",
     "allauth",
@@ -377,9 +378,23 @@ SPECTACULAR_SETTINGS = {
 # Your stuff...
 # ------------------------------------------------------------------------------
 JAZZMIN_SETTINGS = {
-    "site_title": "Legal System Admin",
-    "site_header": "Legal Information Assistance System",
-    "site_brand": "Legal AI",
-    "welcome_sign": "Welcome to Legal Admin Panel",
-    "copyright": "Legal Project 2026",
+    "site_title": "Legal AI Admin",
+    "site_header": "Legal Information System",
+    "site_brand": "LegalAI",
+
+    "welcome_sign": "Welcome to Legal AI Admin Panel",
+
+    "copyright": "Legal AI System",
+
+    "search_model": ["auth.User", "legal_ai.LegalDocument"],
+
+    "topmenu_links": [
+        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
+    ],
+
+    "show_sidebar": True,
+    "navigation_expanded": True,
+
+    # Remove clutter (important for UI issues)
+    "show_ui_builder": False,
 }

@@ -1,11 +1,25 @@
-from .pdf_loader import load_pdf
+from pypdf import PdfReader
+import re
 
-def extract_pdf_text(pdf_path):
+
+def extract_pdf_text(file_path: str) -> str:
+    """
+    Extract raw text from PDF
+    """
+    reader = PdfReader(file_path)
+
     text = ""
-
-    document = load_pdf(pdf_path)
-
-    for page in document:
-        text += page.get_text("text") + "\n"
+    for page in reader.pages:
+        content = page.extract_text()
+        if content:
+            text += content + "\n"
 
     return text
+
+
+def clean_text(text: str) -> str:
+    """
+    Clean extracted PDF text
+    """
+    text = re.sub(r'\s+', ' ', text)
+    return text.strip()

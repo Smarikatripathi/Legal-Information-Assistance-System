@@ -1,31 +1,63 @@
-from .pdf_loader import PDFLoader
-from .preprocessing import TextPreprocessor
+import numpy as np
+from sentence_transformers import SentenceTransformer
+import faiss
+
+from legal_ai.models import LegalChunk, LegalDocument
+from .smart_chunking import smart_chunk
+from .text_extract import clean_text
+from .pdf_loader import load_pdf
+
+# multilingual model
+model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
+
+dimension = 384
+index = faiss.IndexFlatL2(dimension)
 
 
-class RAGPipeline:
+def embed(text):
+    return model.encode(text).astype("float32")
 
-    def __init__(self):
-        self.loader = PDFLoader()
-        self.preprocessor = TextPreprocessor()
 
-    def build_dataset(self):
-        """Convert all PDFs into clean chunks"""
+def process_pdf(doc_id, file_path):
+    """
+    FULL ingestion pipeline
+    """
 
-        pdfs = self.loader.load_all_pdfs()
+    raw_text = load_pdf(file_path)
+    clean = clean_text(raw_text)
 
-        dataset = []
+    doc = LegalDocument.objects.get(id=doc_id)
 
-        for pdf in pdfs:
-            file_name = pdf["file_name"]
-            text = self.preprocessor.clean(pdf["text"])
+    chunks = smart_chunk(clean, doc.title)
 
-            chunks = self.preprocessor.chunk_text(text)
+    vectors = []
 
-            for i, chunk in enumerate(chunks):
-                dataset.append({
-                    "file": file_name,
-                    "chunk_id": i,
-                    "text": chunk
-                })
+    for i, c in enumerate(chunks):
+        vector = embed(c["text"])
+        vectors.append(vector)
 
-        return dataset
+        # store chunk in DB
+        chunk_obj = LegalChunk.objects.create(
+            doc=doc,
+            text=c["text"]
+        )
+
+        chunk_obj.embedding_id = index.ntotal + i
+        chunk_obj.save()
+
+    if vectors:
+        index.add(np.array(vectors))
+
+def search(query, top_k=5):
+    q_vec = embed(query).reshape(1, -1)
+
+    distances, indices = index.search(q_vec, top_k)
+
+    results = []
+
+    for i in indices[0]:
+        chunk = LegalChunk.objects.filter(embedding_id=i).first()
+        if chunk:
+            results.append(chunk)
+
+    return results
