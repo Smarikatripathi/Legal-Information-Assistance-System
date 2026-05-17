@@ -1,7 +1,20 @@
 from sentence_transformers import SentenceTransformer
 
-model = SentenceTransformer("all-MiniLM-L6-v2")
+
+# Load multilingual embedding model
+model = SentenceTransformer(
+    "paraphrase-multilingual-MiniLM-L12-v2"
+)
 
 
-def create_embeddings(texts):
-    return model.encode(texts)
+def generate_embeddings(chunks):
+    """
+    Generate embeddings for chunks
+    """
+
+    embeddings = model.encode(
+        chunks,
+        show_progress_bar=True
+    )
+
+    return embeddings

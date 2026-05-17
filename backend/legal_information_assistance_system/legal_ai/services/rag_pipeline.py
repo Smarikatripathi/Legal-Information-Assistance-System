@@ -1,63 +1,73 @@
 import numpy as np
-from sentence_transformers import SentenceTransformer
 import faiss
 
 from legal_ai.models import LegalChunk, LegalDocument
+
+from .pdf_loader import extract_pdf_text, clean_text
 from .smart_chunking import smart_chunk
-from .text_extract import clean_text
-from .pdf_loader import load_pdf
-
-# multilingual model
-model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
-
-dimension = 384
-index = faiss.IndexFlatL2(dimension)
-
-
-def embed(text):
-    return model.encode(text).astype("float32")
+from .embedding import create_embedding
+from legal_ai.storage.vector_db import save_index, load_index
 
 
 def process_pdf(doc_id, file_path):
-    """
-    FULL ingestion pipeline
-    """
 
-    raw_text = load_pdf(file_path)
-    clean = clean_text(raw_text)
+    raw_text = extract_pdf_text(file_path)
+
+    cleaned = clean_text(raw_text)
+
+    chunks = smart_chunk(cleaned)
+
+    embeddings = create_embedding(chunks)
+
+    dimension = embeddings.shape[1]
+
+    try:
+        index, stored_chunks = load_index()
+
+    except:
+        index = faiss.IndexFlatL2(dimension)
+        stored_chunks = []
 
     doc = LegalDocument.objects.get(id=doc_id)
 
-    chunks = smart_chunk(clean, doc.title)
+    for i, chunk_text in enumerate(chunks):
 
-    vectors = []
-
-    for i, c in enumerate(chunks):
-        vector = embed(c["text"])
-        vectors.append(vector)
-
-        # store chunk in DB
-        chunk_obj = LegalChunk.objects.create(
+        chunk = LegalChunk.objects.create(
             doc=doc,
-            text=c["text"]
+            text=chunk_text,
         )
 
-        chunk_obj.embedding_id = index.ntotal + i
-        chunk_obj.save()
+        stored_chunks.append({
+            "db_id": chunk.id,
+            "text": chunk_text,
+        })
 
-    if vectors:
-        index.add(np.array(vectors))
+    index.add(np.array(embeddings).astype("float32"))
+
+    save_index(index, stored_chunks)
+
 
 def search(query, top_k=5):
-    q_vec = embed(query).reshape(1, -1)
 
-    distances, indices = index.search(q_vec, top_k)
+    index, stored_chunks = load_index()
+
+    query_embedding = create_embedding([query])
+
+    D, I = index.search(
+        np.array(query_embedding).astype("float32"),
+        top_k
+    )
 
     results = []
 
-    for i in indices[0]:
-        chunk = LegalChunk.objects.filter(embedding_id=i).first()
-        if chunk:
+    for idx in I[0]:
+
+        if idx < len(stored_chunks):
+
+            db_id = stored_chunks[idx]["db_id"]
+
+            chunk = LegalChunk.objects.get(id=db_id)
+
             results.append(chunk)
 
     return results
