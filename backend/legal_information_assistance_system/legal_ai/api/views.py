@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from legal_ai.models import LegalDocument
 from legal_ai.api.serializers import LegalDocumentSerializer
 
-from legal_ai.services.rag_pipeline import process_pdf, search
+from legal_ai.services.rag_pipeline import generate_answer, process_pdf, search
 
 
 # ------------------------
@@ -39,8 +39,12 @@ class LegalQueryView(APIView):
 
         context = "\n\n".join([c.text for c in chunks])
 
+        # later replace this with LLM
+        answer = generate_answer(query, context)
+
         return Response({
             "query": query,
             "context": context,
-            "answer": "Send this context to LLM (next step)"
+            "answer": answer,
+            "sources": [c.id for c in chunks]
         })

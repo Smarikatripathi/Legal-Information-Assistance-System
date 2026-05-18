@@ -1,26 +1,48 @@
 import faiss
+import numpy as np
 import os
 import pickle
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-STORE_PATH = os.path.join(BASE_DIR, "storage")
+INDEX_PATH = "faiss.index"
+META_PATH = "faiss_meta.pkl"
 
-INDEX_PATH = os.path.join(STORE_PATH, "index.faiss")
-CHUNKS_PATH = os.path.join(STORE_PATH, "chunks.pkl")
 
-def save_index(index, chunks):
-    os.makedirs(STORE_PATH, exist_ok=True)
+# ======================================================
+# CREATE OR LOAD INDEX
+# ======================================================
+def get_index(dimension: int):
+    """
+    Load existing FAISS index OR create new one
+    """
 
+    if os.path.exists(INDEX_PATH):
+        index = faiss.read_index(INDEX_PATH)
+    else:
+        index = faiss.IndexFlatL2(dimension)
+
+    return index
+
+
+# ======================================================
+# SAVE INDEX + METADATA
+# ======================================================
+def save_index(index, metadata):
     faiss.write_index(index, INDEX_PATH)
 
-    with open(CHUNKS_PATH, "wb") as f:
-        pickle.dump(chunks, f)
+    with open(META_PATH, "wb") as f:
+        pickle.dump(metadata, f)
 
 
+# ======================================================
+# LOAD INDEX + METADATA
+# ======================================================
 def load_index():
+    if not os.path.exists(INDEX_PATH):
+        return None, []
+
     index = faiss.read_index(INDEX_PATH)
 
-    with open(CHUNKS_PATH, "rb") as f:
-        chunks = pickle.load(f)
+    with open(META_PATH, "rb") as f:
+        metadata = pickle.load(f)
 
-    return index, chunks
+    return index, metadata
