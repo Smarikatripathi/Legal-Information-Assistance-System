@@ -1,40 +1,51 @@
-from allauth.account.forms import SignupForm
-from allauth.socialaccount.forms import SignupForm as SocialSignupForm
-from django.contrib.auth import forms as admin_forms
+from django import forms
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import UserChangeForm as DjangoUserChangeForm
+from django.contrib.auth.forms import UserCreationForm as DjangoUserCreationForm
 from django.utils.translation import gettext_lazy as _
 
-from .models import User
+from allauth.account.forms import SignupForm
+from allauth.socialaccount.forms import SignupForm as SocialSignupForm
+
+User = get_user_model()
 
 
-class UserAdminChangeForm(admin_forms.UserChangeForm):
-    class Meta(admin_forms.UserChangeForm.Meta):
+class UserAdminChangeForm(DjangoUserChangeForm):
+    class Meta(DjangoUserChangeForm.Meta):
         model = User
 
 
-class UserAdminCreationForm(admin_forms.AdminUserCreationForm):
-    """
-    Form for User Creation in the Admin Area.
-    To change user signup, see UserSignupForm and UserSocialSignupForm.
-    """
-
-    class Meta(admin_forms.UserCreationForm.Meta):
+class UserAdminCreationForm(DjangoUserCreationForm):
+    class Meta(DjangoUserCreationForm.Meta):
         model = User
-        error_messages = {
-            "username": {"unique": _("This username has already been taken.")},
-        }
+        fields = ("email", "username")
 
 
 class UserSignupForm(SignupForm):
-    """
-    Form that will be rendered on a user sign up section/screen.
-    Default fields will be added automatically.
-    Check UserSocialSignupForm for accounts created from social.
-    """
+    def save(self, request):
+        user = super().save(request)
+        return user
 
 
 class UserSocialSignupForm(SocialSignupForm):
-    """
-    Renders the form when user has signed up using social accounts.
-    Default fields will be added automatically.
-    See UserSignupForm otherwise.
-    """
+    pass
+
+
+class PasswordResetConfirmForm(forms.Form):
+    new_password = forms.CharField(
+        label=_("New password"),
+        widget=forms.PasswordInput(attrs={"class": "form-control", "autocomplete": "new-password"}),
+        min_length=8,
+    )
+    confirm_password = forms.CharField(
+        label=_("Confirm new password"),
+        widget=forms.PasswordInput(attrs={"class": "form-control", "autocomplete": "new-password"}),
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password = cleaned_data.get("new_password")
+        confirm_password = cleaned_data.get("confirm_password")
+        if new_password and confirm_password and new_password != confirm_password:
+            raise forms.ValidationError(_("Passwords do not match."))
+        return cleaned_data

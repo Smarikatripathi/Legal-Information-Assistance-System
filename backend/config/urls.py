@@ -8,53 +8,40 @@ from django.views import defaults as default_views
 from django.views.generic import TemplateView
 from drf_spectacular.views import SpectacularAPIView
 from drf_spectacular.views import SpectacularSwaggerView
-from rest_framework.authtoken.views import obtain_auth_token
-from legal_ai.api.views import LegalQueryView, UploadPDFView
+from legal_information_assistance_system.users.views import password_reset_confirm_view
+from legal_information_assistance_system.users.views import password_reset_done_view
+
 urlpatterns = [
+    path("reset-password/", password_reset_confirm_view, name="password-reset-confirm"),
+    path("reset-password/done/", password_reset_done_view, name="password-reset-done"),
     path("", TemplateView.as_view(template_name="pages/home.html"), name="home"),
     path(
         "about/",
         TemplateView.as_view(template_name="pages/about.html"),
         name="about",
     ),
-    # Django Admin, use {% url 'admin:index' %}
-    path(settings.ADMIN_URL, admin.site.urls),
-    # User management
     path("users/", include("legal_information_assistance_system.users.urls", namespace="users")),
     path("accounts/", include("allauth.urls")),
-    # Your stuff: custom urls includes go here
-    # ...
-    # Media files
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
-
-     path("admin/", admin.site.urls),
-
-    # path("api/upload/", UploadPDFView.as_view()),
-    # path("api/query/", LegalQueryView.as_view()),
+    path("admin/", admin.site.urls),
 ]
+
 if settings.DEBUG:
-    # Static file serving when using Gunicorn + Uvicorn for local web socket development
     urlpatterns += staticfiles_urlpatterns()
 
-# API URLS
 urlpatterns += [
-    # API base url
+    path("api/auth/", include("legal_information_assistance_system.users.api.urls")),
     path("api/", include("config.api_router")),
-    # DRF auth token
-    path("api/auth-token/", obtain_auth_token, name="obtain_auth_token"),
     path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
     path(
         "api/docs/",
         SpectacularSwaggerView.as_view(url_name="api-schema"),
         name="api-docs",
-        
     ),
     path("api/", include("legal_ai.api.urls")),
 ]
 
 if settings.DEBUG:
-    # This allows the error pages to be debugged during development, just visit
-    # these url in browser to see how these error pages look like.
     urlpatterns += [
         path(
             "400/",

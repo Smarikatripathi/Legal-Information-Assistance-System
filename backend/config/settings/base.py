@@ -3,6 +3,7 @@
 
 import ssl
 from pathlib import Path
+from decouple import config
 
 import environ
 
@@ -97,13 +98,14 @@ THIRD_PARTY_APPS = [
     "crispy_bootstrap5",
     "allauth",
     "allauth.account",
-    #"allauth.mfa",
     "allauth.socialaccount",
     "django_celery_beat",
     "rest_framework",
     "rest_framework.authtoken",
     "corsheaders",
     "drf_spectacular",
+    "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
 ]
 
 LOCAL_APPS = [
@@ -248,10 +250,31 @@ X_FRAME_OPTIONS = "DENY"
 # EMAIL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
-EMAIL_BACKEND = env(
-    "DJANGO_EMAIL_BACKEND",
-    default="django.core.mail.backends.smtp.EmailBackend",
+EMAIL_BACKEND = config(
+    "EMAIL_BACKEND",
+    default="django.core.mail.backends.smtp.EmailBackend"
 )
+
+EMAIL_HOST = config("EMAIL_HOST", default="smtp.gmail.com")
+
+EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
+
+DEFAULT_FROM_EMAIL = config(
+    "DEFAULT_FROM_EMAIL",
+    default=config("EMAIL_HOST_USER", default="noreply@example.com"),
+)
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+SITE_NAME = "Legal Information Assistance System"
+# Base URL for links in password-reset emails (Django reset page or your SPA).
+PASSWORD_RESET_BASE_URL = config(
+    "PASSWORD_RESET_BASE_URL",
+    default=config("FRONTEND_PASSWORD_RESET_URL", default="http://127.0.0.1:8000"),
+)
+# Backward-compatible alias
+FRONTEND_PASSWORD_RESET_URL = PASSWORD_RESET_BASE_URL
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-timeout
 EMAIL_TIMEOUT = 5
 
@@ -356,11 +379,11 @@ SOCIALACCOUNT_FORMS = {"signup": "legal_information_assistance_system.users.form
 # django-rest-framework - https://www.django-rest-framework.org/api-guide/settings/
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework.authentication.SessionAuthentication",
-        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
 }
 
 # django-cors-headers - https://github.com/adamchainz/django-cors-headers#setup
@@ -372,7 +395,7 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "Legal Information Assistance System API",
     "DESCRIPTION": "Documentation of API endpoints of Legal Information Assistance System",
     "VERSION": "1.0.0",
-    "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAdminUser"],
+    "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAuthenticated"],
     "SCHEMA_PATH_PREFIX": "/api/",
 }
 # Your stuff...
@@ -397,4 +420,15 @@ JAZZMIN_SETTINGS = {
 
     # Remove clutter (important for UI issues)
     "show_ui_builder": False,
+}
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,
+    "AUTH_HEADER_TYPES": ("Bearer",),
 }

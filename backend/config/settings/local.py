@@ -1,7 +1,13 @@
 from .base import *  # noqa: F403
+from .base import BASE_DIR
 from .base import INSTALLED_APPS
 from .base import MIDDLEWARE
 from .base import env
+
+# Load cookiecutter local env file when running manage.py directly (non-Docker).
+_local_django_env = BASE_DIR / ".envs" / ".local" / ".django"
+if _local_django_env.is_file():
+    env.read_env(str(_local_django_env))
 
 # GENERAL
 # ------------------------------------------------------------------------------
@@ -29,9 +35,18 @@ CACHES = {
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
 EMAIL_BACKEND = env(
-    "DJANGO_EMAIL_BACKEND",
-    default="django.core.mail.backends.console.EmailBackend",
+    "EMAIL_BACKEND",
+    default="django.core.mail.backends.smtp.EmailBackend",
 )
+EMAIL_HOST = env("EMAIL_HOST", default="smtp.gmail.com")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER or "noreply@localhost")
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+PASSWORD_RESET_BASE_URL = env("PASSWORD_RESET_BASE_URL", default="http://127.0.0.1:8000")
+FRONTEND_PASSWORD_RESET_URL = PASSWORD_RESET_BASE_URL
 
 # WhiteNoise
 # ------------------------------------------------------------------------------
