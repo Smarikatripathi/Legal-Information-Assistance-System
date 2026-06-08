@@ -409,18 +409,47 @@ JAZZMIN_SETTINGS = {
 
     "copyright": "Legal AI System",
 
-    "search_model": ["auth.User", "legal_ai.LegalDocument"],
+    "search_model": "auth.User",
+
+    "custom_links": {
+        "legal_ai": [
+            {
+                "name": "RAG Analytics",
+                "url": "/admin/legal-ai/analytics/",
+                "icon": "fas fa-chart-bar",
+                "permissions": ["legal_ai.view_legaldocument"],
+            },
+            {
+                "name": "Retrieval Debugger",
+                "url": "/admin/legal-ai/retrieval-debugger/",
+                "icon": "fas fa-search",
+                "permissions": ["legal_ai.view_legaldocument"],
+            },
+        ]
+    },
 
     "topmenu_links": [
-        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {
+            "name": "Home",
+            "url": "admin:index",
+            "permissions": ["auth.view_user"]
+        },
     ],
 
     "show_sidebar": True,
     "navigation_expanded": True,
-
-    # Remove clutter (important for UI issues)
     "show_ui_builder": False,
 }
+
+# RAG / Legal AI
+# ------------------------------------------------------------------------------
+RAG_EMBEDDING_MODEL = "intfloat/multilingual-e5-base"
+RAG_MIN_SCORE = 0.55
+RAG_DENSE_WEIGHT = 0.7
+RAG_KEYWORD_WEIGHT = 0.3
+RAG_RETRIEVAL_CANDIDATES = 20
+RAG_FINAL_TOP_K = 5
+FAISS_INDEX_DIR = BASE_DIR / "faiss_store"
 
 from datetime import timedelta
 

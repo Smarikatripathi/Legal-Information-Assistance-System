@@ -5,12 +5,29 @@ import urllib.request
 from typing import Any
 
 
-# =====================================================
-# 1. BASE LLM CLASS
-# =====================================================
-class LegalLLM:
-    """Wrapper for local or cloud LLM backends used by the legal RAG pipeline."""
+LEGAL_SYSTEM_PROMPT = """You are a Legal Information Assistant for Nepal law.
 
+STRICT RULES:
+1. Use ONLY the provided legal context. Never invent laws, sections, or articles.
+2. Never infer legal provisions not explicitly stated in the context.
+3. Never hallucinate. If the context is insufficient, say exactly:
+   "The requested information could not be found in the available legal documents."
+4. Always cite the source: document name, Part, Chapter, Section/Article number.
+5. Explain in clear, simple language suitable for citizens and students.
+6. Support both English and Nepali queries — respond in the same language as the question.
+7. If multiple provisions apply, list them separately with citations.
+8. Do not provide personal legal advice — provide informational summaries only.
+
+CONTEXT FORMAT: Each block is labeled [Source N] with document and section metadata.
+
+Answer structure:
+- Direct answer first
+- Legal citation (Section/Article/Part)
+- Brief explanation
+"""
+
+
+class LegalLLM:
     def __init__(
         self,
         provider: str | None = None,
@@ -22,40 +39,22 @@ class LegalLLM:
         self.ollama_host = ollama_host or os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434")
         self.openai_model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
-    # -------------------------------------------------
-    # MAIN GENERATION FUNCTION
-    # -------------------------------------------------
     def generate(self, query: str, context: str) -> str:
-
         prompt = self.build_prompt(query, context)
-
         if self.provider == "openai":
             return self._openai_call(prompt)
-
-        elif self.provider == "ollama":
+        if self.provider == "ollama":
             return self._ollama_call(prompt)
+        return self._mock_response()
 
-        else:
-            return self._mock_response(prompt)
-
-    # -------------------------------------------------
-    # PROMPT ENGINEERING (VERY IMPORTANT)
-    # -------------------------------------------------
     def build_prompt(self, query: str, context: str) -> str:
         return (
-            "You are a legal assistant AI. Use only the provided context and do not hallucinate. "
-            "Respond clearly with legal reasoning based solely on the context. "
-            "If the context is insufficient, state that the documents do not contain enough information.\n\n"
-            "Context:\n"
-            f"{context}\n\n"
-            "Question:\n"
-            f"{query}\n\n"
-            "Answer:"
+            f"{LEGAL_SYSTEM_PROMPT}\n\n"
+            f"--- LEGAL CONTEXT ---\n{context}\n\n"
+            f"--- USER QUESTION ---\n{query}\n\n"
+            f"--- ANSWER (with citations) ---"
         )
 
-    # =====================================================
-    # 2. OPENAI IMPLEMENTATION
-    # =====================================================
     def _openai_call(self, prompt: str) -> str:
         try:
             from openai import OpenAI
@@ -64,27 +63,22 @@ class LegalLLM:
             response = client.chat.completions.create(
                 model=self.openai_model,
                 messages=[
-                    {"role": "system", "content": "You are a legal assistant AI."},
+                    {"role": "system", "content": LEGAL_SYSTEM_PROMPT},
                     {"role": "user", "content": prompt},
                 ],
-                temperature=0.2,
+                temperature=0.1,
             )
-
             return response.choices[0].message.content.strip()
         except Exception as exc:
-            return f"OpenAI Error: {exc}"
+            return f"The requested information could not be found in the available legal documents. (LLM error: {exc})"
 
-    # =====================================================
-    # 3. OLLAMA LOCAL LLM (FREE OPTION)
-    # =====================================================
     def _ollama_call(self, prompt: str) -> str:
-        request_body = json.dumps(
-            {
-                "model": self.model,
-                "prompt": prompt,
-                "stream": False,
-            }
-        ).encode("utf-8")
+        request_body = json.dumps({
+            "model": self.model,
+            "prompt": prompt,
+            "stream": False,
+            "options": {"temperature": 0.1},
+        }).encode("utf-8")
 
         request = urllib.request.Request(
             f"{self.ollama_host}/api/generate",
@@ -92,45 +86,27 @@ class LegalLLM:
             headers={"Content-Type": "application/json"},
             method="POST",
         )
-
         try:
-            with urllib.request.urlopen(request, timeout=30) as response:
+            with urllib.request.urlopen(request, timeout=60) as response:
                 payload = json.loads(response.read().decode("utf-8"))
-            return self._extract_ollama_response(payload)
-        except urllib.error.HTTPError as exc:
-            return f"Ollama HTTPError: {exc.code} {exc.reason}"
-        except Exception as exc:
-            return f"Ollama Error: {exc}"
+            return self._extract_ollama_response(payload) or (
+                "The requested information could not be found in the available legal documents."
+            )
+        except Exception:
+            return "The requested information could not be found in the available legal documents."
 
     def _extract_ollama_response(self, payload: Any) -> str:
         if isinstance(payload, dict):
             if "response" in payload:
                 return str(payload["response"]).strip()
-            if "results" in payload and payload["results"]:
-                first = payload["results"][0]
-                if isinstance(first, dict) and "content" in first:
-                    return str(first["content"]).strip()
         return ""
 
-    # =====================================================
-    # 4. FALLBACK (DEBUG ONLY)
-    # =====================================================
-    def _mock_response(self, prompt: str) -> str:
-        return "LLM provider not configured properly."
+    def _mock_response(self) -> str:
+        return "The requested information could not be found in the available legal documents."
 
 
-# =====================================================
-# 5. GLOBAL INSTANCE (IMPORT THIS IN RAG PIPELINE)
-# =====================================================
 llm = LegalLLM()
 
 
-# =====================================================
-# 6. EASY FUNCTION FOR RAG PIPELINE
-# =====================================================
 def generate_answer(query: str, context: str) -> str:
-    """
-    Simple wrapper for RAG pipeline
-    """
-
     return llm.generate(query, context)
