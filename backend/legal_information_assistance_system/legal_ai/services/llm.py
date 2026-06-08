@@ -94,7 +94,7 @@ class LegalLLM:
         )
 
         try:
-            with urllib.request.urlopen(request, timeout=30) as response:
+            with urllib.request.urlopen(request, timeout=1000) as response:
                 payload = json.loads(response.read().decode("utf-8"))
             return self._extract_ollama_response(payload)
         except urllib.error.HTTPError as exc:

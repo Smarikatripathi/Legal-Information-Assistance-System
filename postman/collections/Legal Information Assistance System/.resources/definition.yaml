@@ -1,0 +1,6 @@
+$kind: collection
+name: Legal Information Assistance System
+variables:
+  - key: access_token
+    value: ''
+    description: JWT Bearer token obtained from the login endpoint
