@@ -1,0 +1,38 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div class="container-fluid">
+  <h1>RAG Analytics Dashboard</h1>
+
+  <div class="row mb-4">
+    <div class="col-md-3"><div class="card"><div class="card-body"><h5>Documents</h5><h2>{{ stats.total_documents }}</h2></div></div></div>
+    <div class="col-md-3"><div class="card"><div class="card-body"><h5>Chunks</h5><h2>{{ stats.total_chunks }}</h2></div></div></div>
+    <div class="col-md-3"><div class="card"><div class="card-body"><h5>Vectors</h5><h2>{{ stats.total_embeddings }}</h2></div></div></div>
+    <div class="col-md-3"><div class="card"><div class="card-body"><h5>Queries</h5><h2>{{ stats.total_queries }}</h2></div></div></div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-4"><div class="card"><div class="card-body">
+      <h5>Avg Confidence</h5><p>{{ stats.avg_confidence|floatformat:3 }}</p>
+      <h5>Avg Response Time</h5><p>{{ stats.avg_response_time|floatformat:0 }} ms</p>
+      <h5>Conversations</h5><p>{{ stats.total_conversations }}</p>
+    </div></div></div>
+    <div class="col-md-4"><div class="card"><div class="card-body">
+      <h5>Embedding Model</h5><p>{{ stats.embedding_model }}</p>
+      <h5>Dimension</h5><p>{{ stats.embedding_dimension }}</p>
+      <h5>FAISS Status</h5><p>{{ stats.faiss_status }}</p>
+      <h5>Last Rebuild</h5><p>{{ stats.last_rebuild }}</p>
+    </div></div></div>
+    <div class="col-md-4"><div class="card"><div class="card-body">
+      <h5>Documents by Type</h5>
+      <ul>{% for row in stats.documents_by_type %}<li>{{ row.document_type }}: {{ row.count }}</li>{% empty %}<li>None</li>{% endfor %}</ul>
+      <h5>Top Documents by Chunks</h5>
+      <ul>{% for row in stats.top_documents %}<li>{{ row.doc__title }}: {{ row.count }}</li>{% empty %}<li>None</li>{% endfor %}</ul>
+    </div></div></div>
+  </div>
+
+  <p>
+    <a href="{% url 'admin:retrieval-debugger' %}" class="btn btn-primary">Open Retrieval Debugger</a>
+  </p>
+</div>
+{% endblock %}

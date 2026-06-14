@@ -63,10 +63,14 @@ target/
 celerybeat-schedule
 
 # Environments
-.venv
+.venv/
 venv/
 ENV/
 .envs
+
+.env/
+.local/
+*.django
 
 # Rope project settings
 .ropeproject

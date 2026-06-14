@@ -51,7 +51,7 @@ FRONTEND_PASSWORD_RESET_URL = PASSWORD_RESET_BASE_URL
 # WhiteNoise
 # ------------------------------------------------------------------------------
 # http://whitenoise.evans.io/en/latest/django.html#using-whitenoise-in-development
-INSTALLED_APPS = ["whitenoise.runserver_nostatic", *INSTALLED_APPS]
+INSTALLED_APPS = ["whitenoise.runserver_nostatic" , *INSTALLED_APPS]
 
 
 # django-debug-toolbar
