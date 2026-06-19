@@ -29,7 +29,7 @@
   <div class="card mb-3">
     <div class="card-header">
       <strong>Score:</strong> {{ hit.score|floatformat:4 }}
-      &nbsp;|&nbsp; <strong>Document:</strong> {{ hit.document_name|default:hit.document_title }}
+      &nbsp;|&nbsp; <strong>Document:</strong> {{ hit.document_name }}
       {% if hit.section %}&nbsp;|&nbsp; Section {{ hit.section }}{% endif %}
       {% if hit.article %}&nbsp;|&nbsp; Article {{ hit.article }}{% endif %}
       {% if hit.part %}&nbsp;|&nbsp; {{ hit.part }}{% endif %}

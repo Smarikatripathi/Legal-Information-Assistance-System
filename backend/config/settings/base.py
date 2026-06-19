@@ -444,7 +444,7 @@ JAZZMIN_SETTINGS = {
 # RAG / Legal AI
 # ------------------------------------------------------------------------------
 RAG_EMBEDDING_MODEL = "intfloat/multilingual-e5-base"
-RAG_MIN_SCORE = 0.55
+RAG_MIN_SCORE = 0.35  # Lowered from 0.55 to allow weaker but valid results
 RAG_DENSE_WEIGHT = 0.7
 RAG_KEYWORD_WEIGHT = 0.3
 RAG_RETRIEVAL_CANDIDATES = 20

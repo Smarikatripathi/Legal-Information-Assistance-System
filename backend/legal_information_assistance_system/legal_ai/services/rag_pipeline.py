@@ -7,6 +7,7 @@ from django.db import transaction
 from legal_ai.models import EmbeddingConfig, LegalChunk, LegalDocument
 from legal_ai.services.embedding import create_query_embedding, get_embedding_model
 from legal_ai.services.hybrid_retrieval import MIN_SCORE, filter_by_threshold, hybrid_score
+from legal_ai.services.language import language_service
 from legal_ai.services.llm import llm
 from legal_ai.services.pdf_loader import extract_pdf_text
 from legal_ai.services.reranker import rerank_results
@@ -14,7 +15,7 @@ from legal_ai.services.smart_chunking import SmartLegalChunker
 from legal_ai.services.text_cleaning import clean_text
 from legal_ai.storage.vector_db import FAISSService
 
-RETRIEVAL_CANDIDATES = getattr(settings, "RAG_RETRIEVAL_CANDIDATES", 20)
+RETRIEVAL_CANDIDATES = getattr(settings, "RAG_RETRIEVAL_CANDIDATES", 10)  # Reduced from 20 for faster retrieval
 FINAL_TOP_K = getattr(settings, "RAG_FINAL_TOP_K", 5)
 
 chunker = SmartLegalChunker()
@@ -151,6 +152,7 @@ def process_pdf(document_id: int) -> Dict[str, Any]:
 
 
 def search(query: str, top_k: int = FINAL_TOP_K, *, min_score: float | None = None) -> List[Dict[str, Any]]:
+    """Search with graceful degradation: returns best matches even if below threshold."""
     if not query or not query.strip():
         return []
 
@@ -176,7 +178,15 @@ def search(query: str, top_k: int = FINAL_TOP_K, *, min_score: float | None = No
 
     candidates.sort(key=lambda x: x["score"], reverse=True)
     reranked = rerank_results(query, candidates, top_k=RETRIEVAL_CANDIDATES)
-    filtered = filter_by_threshold(reranked, min_score=min_score)
+    
+    # Try strict threshold first
+    threshold = min_score if min_score is not None else MIN_SCORE
+    filtered = filter_by_threshold(reranked, min_score=threshold)
+    
+    # Graceful degradation: if strict threshold gives nothing, return best candidates anyway
+    if not filtered and reranked:
+        filtered = reranked[:top_k]
+    
     return filtered[:top_k]
 
 
@@ -217,39 +227,94 @@ def answer_query(
     *,
     min_score: float | None = None,
 ) -> Dict[str, Any]:
+    """Answer query with graceful degradation - ALWAYS attempts answer generation."""
     start = time.perf_counter()
-    threshold = min_score if min_score is not None else MIN_SCORE
+    
+    # Detect query language
+    query_language = language_service.detect_language(query)
 
-    hits = search(query, top_k=top_k, min_score=threshold)
-    elapsed_ms = int((time.perf_counter() - start) * 1000)
-
-    if not hits:
-        has_docs = LegalDocument.objects.exists()
-        has_chunks = LegalChunk.objects.count() > 0
-
-        if not has_docs:
-            message = "No legal documents are available. Please upload a PDF first."
-        elif not has_chunks:
-            message = "Documents exist but are not indexed yet. Re-upload or run rebuild_vector_index."
-        else:
-            message = "No sufficiently relevant legal provision was found in the available documents."
-
+    # Search with standard threshold
+    hits = search(query, top_k=top_k, min_score=min_score)
+    search_time = time.perf_counter() - start
+    
+    # Check if we have NO documents at all
+    has_docs = LegalDocument.objects.exists()
+    has_chunks = LegalChunk.objects.count() > 0
+    
+    if not has_docs:
+        message = "No legal documents are available. Please upload a PDF first."
+        elapsed_ms = int((time.perf_counter() - start) * 1000)
         return {
             "query": query,
             "answer": message,
             "sources": [],
             "confidence_score": 0.0,
             "response_time_ms": elapsed_ms,
+            "query_language": query_language,
+            "retrieval_time_ms": int(search_time * 1000),
         }
+    
+    if not has_chunks:
+        message = "Documents exist but are not indexed yet. Re-upload or run rebuild_vector_index."
+        elapsed_ms = int((time.perf_counter() - start) * 1000)
+        return {
+            "query": query,
+            "answer": message,
+            "sources": [],
+            "confidence_score": 0.0,
+            "response_time_ms": elapsed_ms,
+            "query_language": query_language,
+            "retrieval_time_ms": int(search_time * 1000),
+        }
+    
+    # If no hits with standard threshold, try weaker threshold for fallback reasoning
+    if not hits:
+        hits = search(query, top_k=top_k, min_score=0.15)  # Very weak fallback
+    
+    # Calculate confidence even if hits are weak
+    confidence = round(sum(h["score"] for h in hits) / len(hits), 4) if hits else 0.0
+    context = _format_context(hits) if hits else ""
+    
+    # ALWAYS attempt to generate answer, even with weak/empty context
+    llm_start = time.perf_counter()
+    answer = ""
+    llm_error = None
 
-    confidence = round(sum(h["score"] for h in hits) / len(hits), 4)
-    context = _format_context(hits)
-    answer = llm.generate(query, context)
+    try:
+        answer = llm.generate(query, context) if context else llm.generate_without_context(query)
+    except Exception as exc:
+        llm_error = exc
+        try:
+            answer = llm.generate_without_context(query)
+            llm_error = None
+        except Exception as exc2:
+            llm_error = exc2
+            answer = (
+                "Unable to generate a natural-language answer because the local LLM service failed. "
+                "Please check that Ollama is running and that the model is available. "
+                "The system did find the following source(s):\n\n"
+                + "\n".join(
+                    [
+                        f"- {source.get('document', '<unknown>')} | {source.get('title', '')} | score={source.get('score', 0):.4f}"
+                        for source in _format_sources(hits)
+                    ]
+                )
+            )
+    llm_time = time.perf_counter() - llm_start
 
-    return {
+    elapsed_ms = int((time.perf_counter() - start) * 1000)
+    result = {
         "query": query,
         "answer": answer,
-        "sources": _format_sources(hits),
+        "sources": _format_sources(hits) if hits else [],
         "confidence_score": confidence,
         "response_time_ms": elapsed_ms,
+        "query_language": query_language,
+        "retrieval_time_ms": int(search_time * 1000),
+        "generation_time_ms": int(llm_time * 1000),
     }
+
+    if llm_error is not None:
+        result["llm_error"] = str(llm_error)
+
+    return result

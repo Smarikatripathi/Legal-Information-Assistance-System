@@ -6,7 +6,8 @@ from django.conf import settings
 
 DENSE_WEIGHT = getattr(settings, "RAG_DENSE_WEIGHT", 0.7)
 KEYWORD_WEIGHT = getattr(settings, "RAG_KEYWORD_WEIGHT", 0.3)
-MIN_SCORE = getattr(settings, "RAG_MIN_SCORE", 0.55)
+MIN_SCORE = getattr(settings, "RAG_MIN_SCORE", 0.35)  # Lowered from 0.55 to allow weaker but valid results
+FALLBACK_MIN_SCORE = 0.20  # Very weak threshold for reasoning fallback
 
 NEPALI_DIGIT_MAP = str.maketrans("०१२३४५६७८९", "0123456789")
 
@@ -40,7 +41,7 @@ def keyword_score(query: str, text: str, metadata: Dict[str, Any]) -> float:
         return 0.0
 
     text_tokens = set(tokenize(text))
-    overlap = len(query_tokens & text_tokens) / len(query_tokens)
+    overlap = len(query_tokens & text_tokens) / len(query_tokens) if query_tokens else 0.0
 
     # Exact section/article number match boost
     legal_numbers = extract_legal_numbers(query)
@@ -57,11 +58,16 @@ def keyword_score(query: str, text: str, metadata: Dict[str, Any]) -> float:
     if legal_numbers & meta_numbers:
         overlap = min(1.0, overlap + 0.45)
 
-    # Title match boost
+    # Title match boost - more aggressive for legal documents
     title = (metadata.get("title") or "").lower()
     title_hits = sum(1 for t in query_tokens if t in title)
     if title_hits:
         overlap = min(1.0, overlap + 0.15 * title_hits)
+    
+    # Partial semantic match: if 30%+ tokens match, boost score
+    # This helps catch "fundamental rights" in chunks about "rights"
+    if len(query_tokens & text_tokens) >= max(1, len(query_tokens) * 0.3):
+        overlap = min(1.0, overlap + 0.1)  # Semantic relevance boost
 
     return min(1.0, overlap)
 
