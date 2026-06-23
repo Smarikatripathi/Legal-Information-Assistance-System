@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const API = "http://localhost:8000/api/auth"; 
+const API2 = "http://localhost:8000/api/users/me/"
 // adjust if your backend prefix is different
 
 // ---------------- LOGIN ----------------
@@ -44,7 +45,7 @@ export const logout = async () => {
 export const getProfile = async () => {
   const token = localStorage.getItem("access");
 
-  const res = await axios.get(`${API}/profile/`, {
+  const res = await axios.get(`${API2}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

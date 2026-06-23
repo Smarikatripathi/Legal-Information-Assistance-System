@@ -1,23 +1,39 @@
-import { useState, useEffect, useRef } from "react";
+"use client";
 
+import { useState, useEffect, useRef } from "react";
 import { Scale, FileText, Home, ShieldCheck } from "lucide-react";
+import { useOutletContext } from "react-router-dom";
 
 import ChatInput from "./ChatInput";
+import { sendMessage } from "../services/chatService";
 import MessageBubble from "./MessageBubble";
 
 const ChatArea = () => {
-  const [input, setInput] = useState("");
-  const [messages, setMessages] = useState([]);
+  const context = useOutletContext();
 
+  if (!context) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
+
+  const {
+    messages,
+    setMessages,
+    conversationId,
+    setConversationId,
+  } = context;
+
+  const [input, setInput] = useState("");
   const bottomRef = useRef(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({
-      behavior: "smooth",
-    });
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
 
     const userMessage = {
@@ -25,132 +41,88 @@ const ChatArea = () => {
       content: input,
     };
 
-    const assistantMessage = {
-      role: "assistant",
-      content: "This is a temporary legal assistant response.",
-    };
+    setMessages((prev) => [...prev, userMessage]);
 
-    setMessages((prev) => [
-      ...prev,
-      userMessage,
-      assistantMessage,
-    ]);
-
+    const currentInput = input;
     setInput("");
+
+    try {
+      const response = await sendMessage(currentInput, conversationId);
+
+      const assistantMessage = {
+        role: "assistant",
+        content: response.answer,
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+
+      if (response.conversation_id) {
+        setConversationId(response.conversation_id);
+      }
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Sorry, something went wrong. Please try again.",
+        },
+      ]);
+    }
   };
 
   return (
-    <section className="flex flex-col h-screen overflow-hidden">
-      {/* HEADER */}
+    <section className="flex flex-col h-full overflow-hidden">
 
-      <header
-        className="
-          h-14
-          border-b
-          border-border
-          bg-white/70
-          backdrop-blur-md
-          flex
-          items-center
-          justify-between
-          px-4
-          md:px-6
-        "
-      >
-        <div>
-          <h2 className="font-semibold ml-10 lg:ml-0">
-            Legal Information Assistant
-          </h2>
-
-          <p className="text-sm text-muted-foreground ml-10 lg:ml-0">
-            Nepal Legal Support Platform
-          </p>
-        </div>
-
-        <div className="flex gap-2">
-          <div className="h-3 w-3 rounded-full bg-accent" />
-          <div className="h-3 w-3 rounded-full bg-primary" />
-        </div>
-      </header>
-
-      {/* MAIN */}
-
+      {/* SCROLL AREA */}
       <div className="flex-1 overflow-y-auto">
-        {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full px-6">
-            <div className="max-w-5xl text-center animate-fade-in">
-              {/* Logo */}
 
-              <div
-                className="
-                  mx-auto
-                  mb-8
-                  h-24
-                  w-24
-                  rounded-3xl
-                  gradient-primary
-                  flex
-                  items-center
-                  justify-center
-                "
-              >
+        {messages.length === 0 ? (
+          <div className="flex items-center justify-center h-full px-6 py-10">
+            <div className="max-w-5xl text-center animate-fade-in">
+
+              {/* Logo */}
+              <div className="mx-auto mb-8 h-24 w-24 rounded-3xl gradient-primary flex items-center justify-center">
                 <Scale size={48} className="text-white" />
               </div>
 
-              {/* Heading */}
-
+              {/* Title */}
               <h1 className="text-4xl md:text-6xl font-bold mb-5">
                 <span className="text-primary">Legal Information</span>
-
                 <br />
-
                 <span className="text-accent">Assistant</span>
               </h1>
 
               <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                Ask legal questions, understand laws, explore legal resources
-                and connect with legal professionals across Nepal.
+                Ask legal questions, understand laws, and connect with legal resources in Nepal.
               </p>
 
-              {/* CARDS */}
-
-              <div className="grid md:grid-cols-3 gap-5 mt-12">
+              {/* Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-12">
                 <div className="dashboard-card p-6 text-left">
-                  <FileText className="text-primary mb-4" />
-
-                  <h3 className="font-semibold text-primary mb-2">
-                    Contract Law
-                  </h3>
-
+                  <FileText className="text-primary mb-2" />
+                  <h3 className="font-semibold">Contract Law</h3>
                   <p className="text-sm text-muted-foreground">
                     Agreements, obligations and disputes.
                   </p>
                 </div>
 
                 <div className="dashboard-card p-6 text-left">
-                  <Home className="text-accent mb-4" />
-
-                  <h3 className="font-semibold text-accent mb-2">
-                    Property Rights
-                  </h3>
-
+                  <Home className="text-accent mb-2" />
+                  <h3 className="font-semibold">Property Rights</h3>
                   <p className="text-sm text-muted-foreground">
-                    Ownership, inheritance and land law.
+                    Ownership and land law.
                   </p>
                 </div>
 
                 <div className="dashboard-card p-6 text-left">
-                  <ShieldCheck className="text-primary mb-4" />
-
-                  <h3 className="font-semibold text-primary mb-2">
-                    Consumer Protection
-                  </h3>
-
+                  <ShieldCheck className="text-primary mb-2" />
+                  <h3 className="font-semibold">Consumer Protection</h3>
                   <p className="text-sm text-muted-foreground">
-                    Complaints, refunds and legal rights.
+                    Rights, refunds and complaints.
                   </p>
                 </div>
               </div>
+
             </div>
           </div>
         ) : (
@@ -165,15 +137,20 @@ const ChatArea = () => {
             <div ref={bottomRef} />
           </div>
         )}
+
       </div>
 
-      {/* INPUT */}
-
-      <div className="border-t border-border p-4 bg-white/60">
-        <div className="max-w-4xl mx-auto">
-          <ChatInput value={input} onChange={setInput} onSend={handleSend} />
+      {/* INPUT (ALWAYS VISIBLE) */}
+      <div className="shrink-0 border-t border-border p-4 bg-white/60">
+        <div className="max-w-4xl mx-auto w-full">
+          <ChatInput
+            value={input}
+            onChange={setInput}
+            onSend={handleSend}
+          />
         </div>
       </div>
+
     </section>
   );
 };

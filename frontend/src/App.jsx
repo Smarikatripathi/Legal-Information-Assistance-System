@@ -3,10 +3,11 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
-import Chat from "./pages/Chat";
+
 import Lawyers from "./pages/Lawyers";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ChatArea from "./components/ChatArea";
 
 const App = () => {
   return (
@@ -25,18 +26,17 @@ const App = () => {
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/chat"
+          }>
+           <Route index element ={<ChatArea/>}/> 
+             <Route
+          path="profile"
           element={
             <ProtectedRoute>
-              <Chat />
+              <Profile />
             </ProtectedRoute>
           }
         />
-
+       </Route>
         <Route
           path="/lawyers"
           element={
@@ -46,14 +46,7 @@ const App = () => {
           }
         />
 
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
+      
       </Routes>
     </BrowserRouter>
   );

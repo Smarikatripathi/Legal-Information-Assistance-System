@@ -1,11 +1,19 @@
+"use client";
+
+import { useState } from "react";
 import DashboardLayout from "../layout/DashboardLayout";
-import ChatArea from "../components/ChatArea";
 
 const Dashboard = () => {
+  const [messages, setMessages] = useState([]);
+  const [conversationId, setConversationId] = useState(null);
+
   return (
-    <DashboardLayout>
-      <ChatArea />
-    </DashboardLayout>
+    <DashboardLayout
+      messages={messages}
+      setMessages={setMessages}
+      conversationId={conversationId}
+      setConversationId={setConversationId}
+    />
   );
 };
 

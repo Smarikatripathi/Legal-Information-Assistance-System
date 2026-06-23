@@ -8,8 +8,43 @@ import {
 } from "lucide-react";
 
 import Button from "./Button";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const Sidebar = ({sidebarOpen,setSidebarOpen}) => {
+const Sidebar = ({
+  sidebarOpen,
+  setSidebarOpen,
+  messages,
+  setMessages,
+  conversationId,
+  setConversationId,
+}) => {
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+  };
+
+  const handleNewChat = () => {
+    setMessages([]);
+    setConversationId(null);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
+
+    setMessages([]);
+    setConversationId(null);
+    setSidebarOpen(false);
+    navigate("/");
+  };
+
+  const handleProfile = () =>{
+    navigate("/dashboard/profile");
+  }
+
   return (
     <>
       {sidebarOpen && (
@@ -21,13 +56,11 @@ const Sidebar = ({sidebarOpen,setSidebarOpen}) => {
             z-40
             lg:hidden
           "
-          onClick={() =>
-            setSidebarOpen(false)
-          }
+          onClick={() => setSidebarOpen(false)}
         />
       )}
 
-       <aside
+      <aside
         className={`
           fixed
           top-0
@@ -46,23 +79,19 @@ const Sidebar = ({sidebarOpen,setSidebarOpen}) => {
           duration-300
           ease-in-out
 
-          ${
-            sidebarOpen
-              ? "translate-x-0"
-              : "-translate-x-full"
-          }
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
 
           lg:translate-x-0
           lg:static
           lg:flex
         `}
       >
-      {/* Logo */}
+        {/* Logo */}
 
-      <div className="p-6 border-b border-border">
-        <div className="flex items-center gap-4">
-          <div
-            className="
+        <div className="p-6 border-b border-border">
+          <div className="flex items-center gap-4">
+            <div
+              className="
               h-14
               w-14
               rounded-2xl
@@ -72,78 +101,106 @@ const Sidebar = ({sidebarOpen,setSidebarOpen}) => {
               justify-center
               text-white
             "
+            >
+              <Scale size={28} />
+            </div>
+
+            <div>
+              <button onClick={handleNewChat}>
+                <h1 className="font-bold text-lg">Legal Assist</h1>
+
+                <p className="text-sm text-muted-foreground">Nepal Legal AI</p>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* New Chat */}
+
+        <div className="p-4">
+          <Button
+            onClick={handleNewChat}
+            variant="gradient"
+            size="lg"
+            className="w-full flex items-center justify-center gap-3"
           >
-            <Scale size={28} />
-          </div>
+            <MessageSquarePlus size={18} />
+            <span>New Chat</span>
+          </Button>
+        </div>
 
-          <div>
-            <h1 className="font-bold text-lg">
-              Legal Assist
-            </h1>
+        {/* History */}
 
-            <p className="text-sm text-muted-foreground">
-              Nepal Legal AI
-            </p>
+        <div className="flex-1 px-4 overflow-y-auto">
+          <p className="text-xs uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
+            <History size={14} />
+            Recent Chats
+          </p>
+
+          <div className="space-y-2">
+            <button className="sidebar-link w-full text-left">
+              Contract Law
+            </button>
+
+            <button className="sidebar-link w-full text-left">
+              Property Rights
+            </button>
+
+            <button className="sidebar-link w-full text-left">
+              Employment Law
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* New Chat */}
+        {/* Footer */}
 
-      <div className="p-4">
-        <Button
-          variant="gradient"
-          size="lg"
-          className="w-full flex p-6  items-center"
-        >
-          <MessageSquarePlus size={18} className="mr-15"/>
-
-          New Chat
-        </Button>
-      </div>
-
-      {/* History */}
-
-      <div className="flex-1 px-4 overflow-y-auto">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
-          <History size={14} />
-          Recent Chats
-        </p>
-
-        <div className="space-y-2">
-          <button className="sidebar-link w-full text-left">
-            Contract Law
+        <div className="border-t border-border p-4 space-y-2">
+          <button className="sidebar-link w-full">
+            <Users size={18} />
+            Lawyers Directory
           </button>
 
-          <button className="sidebar-link w-full text-left">
-            Property Rights
+          <button onClick={handleProfile} className="sidebar-link w-full">
+            <User size={18} />
+            Profile
           </button>
 
-          <button className="sidebar-link w-full text-left">
-            Employment Law
+          <button onClick={handleLogoutClick} className="sidebar-link w-full">
+            <LogOut size={18} />
+            Logout
           </button>
         </div>
-      </div>
 
-      {/* Footer */}
+      
+      </aside>
+        {showLogoutModal && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-100">
+            <div className="bg-white rounded-xl p-6 w-sm shadow-lg text-center">
+             
 
-      <div className="border-t border-border p-4 space-y-2">
-        <button className="sidebar-link w-full">
-          <Users size={18} />
-          Lawyers Directory
-        </button>
+              <p className="text-sm text-foreground mb-6">
+                Are you sure you want to logout?
+              </p>
 
-        <button className="sidebar-link w-full">
-          <User size={18} />
-          Profile
-        </button>
+              <div className="flex gap-15 justify-center">
+                <Button
+                  onClick={() => setShowLogoutModal(false)}
+                  className="  rounded-lg border"
+                >
+                  Cancel
+                </Button>
 
-        <button className="sidebar-link w-full">
-          <LogOut size={18} />
-          Logout
-        </button>
-      </div>
-    </aside>
+                <Button
+                  onClick={handleLogout}
+                  variant="gradient"
+                  className=" rounded-lg  text-white" size="md"
+                >
+                  Logout
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
     </>
   );
 };

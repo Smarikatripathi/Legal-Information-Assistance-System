@@ -67,9 +67,7 @@ const Signup = () => {
         <div className="auth-card p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-primary">
-              Create Account
-            </h1>
+            <h1 className="text-3xl font-bold text-primary">Create Account</h1>
 
             <p className="text-muted-foreground mt-2">
               Join Legal Assist today
@@ -107,7 +105,8 @@ const Signup = () => {
 
             <input
               type="text"
-              name="username"
+              name="signup_username"
+              autoComplete="off"
               placeholder="Username"
               value={form.username}
               onChange={handleChange}
