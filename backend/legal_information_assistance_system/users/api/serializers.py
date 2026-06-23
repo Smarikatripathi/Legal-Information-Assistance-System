@@ -8,7 +8,12 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["username", "name", "url"]
+        fields = [
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+        ]
         extra_kwargs = {
             "url": {"view_name": "api:user-detail", "lookup_field": "username"},
         }
@@ -21,8 +26,8 @@ class SignupSerializer(serializers.ModelSerializer):
         model = User
         fields = ["email", "username", "password", "first_name", "last_name"]
         extra_kwargs = {
-            "first_name": {"required": False},
-            "last_name": {"required": False},
+            "first_name": {"required": True},
+            "last_name": {"required": True},
         }
 
     def create(self, validated_data):

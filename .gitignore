@@ -1,0 +1,81 @@
+# =========================
+# DEPENDENCIES (FRONTEND + BACKEND)
+# =========================
+node_modules/
+jspm_packages/
+
+# =========================
+# FRONTEND (Vite / React)
+# =========================
+dist/
+dist-ssr/
+*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# BACKEND (Python / Django)
+# =========================
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Django / env files
+.env
+.envs/
+*.env
+*.django
+
+# Database (local only)
+*.sqlite3
+
+# Static files
+staticfiles/
+
+# =========================
+# TESTING / CACHE
+# =========================
+.pytest_cache/
+coverage/
+.tox/
+.nyc_output/
+
+# =========================
+# TEMP / BACKUPS
+# =========================
+temp_env_backup/
+
+# =========================
+# OS / IDE
+# =========================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# =========================
+# BUILD / PACKAGE
+# =========================
+build/
+*.tgz
+*.cab
+*.msi
+*.msm
+*.msp
+*.zip
