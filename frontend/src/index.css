@@ -273,20 +273,20 @@
 
 
   .sidebar-link:hover {
-  background: rgba(30, 58, 138, 0.08);
+    background: rgba(30, 58, 138, 0.08);
 
-  transform: translateX(4px);
+    transform: translateX(4px);
+  }
 
   .sidebar-link-active {
-  background: rgba(30, 58, 138, 0.1);
+    background: rgba(30, 58, 138, 0.1);
 
-  border: 1px solid rgba(30, 58, 138, 0.15);
+    border: 1px solid rgba(30, 58, 138, 0.15);
 
-  color: var(--color-primary);
+    color: var(--color-primary);
 
-  font-weight: 600;
-}
-}
+    font-weight: 600;
+  }
 
 }
 
@@ -307,6 +307,7 @@
     );
 
   }
+  
 
 .gradient-primary-bg {
 
@@ -317,6 +318,19 @@
     color-mix(in srgb, var(--color-accent) 20%, transparent),
 
     color-mix(in srgb, var(--color-primary) 20%, transparent)
+
+  );
+
+}
+.gradient-primary-header {
+
+  background: linear-gradient(
+
+    135deg,
+
+    color-mix(in srgb, var(--color-accent) 90%, transparent),
+
+    color-mix(in srgb, var(--color-primary) 90%, transparent)
 
   );
 

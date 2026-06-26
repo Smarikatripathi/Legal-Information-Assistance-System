@@ -105,7 +105,7 @@ const Signup = () => {
 
             <input
               type="text"
-              name="signup_username"
+              name="username"
               autoComplete="off"
               placeholder="Username"
               value={form.username}

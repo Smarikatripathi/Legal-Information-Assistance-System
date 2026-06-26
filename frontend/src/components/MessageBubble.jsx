@@ -1,5 +1,3 @@
-import { useEffect, useRef, useState } from "react";
-
 const MessageBubble = ({ role, content }) => {
   const isUser = role === "user";
 
