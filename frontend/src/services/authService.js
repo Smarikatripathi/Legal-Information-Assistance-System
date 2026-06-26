@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = "http://localhost:8000/api/auth"; 
-const API2 = "http://localhost:8000/api/users/me/"
+const API2 = "http://localhost:8000/api/users/me/";
 // adjust if your backend prefix is different
 
 // ---------------- LOGIN ----------------
@@ -63,6 +63,26 @@ export const updateProfile = async (data) => {
       Authorization: `Bearer ${token}`,
     },
   });
+
+  return res.data;
+};
+
+// ---------------- CHANGE PASSWORD ----------------
+export const changePassword = async (oldPassword, newPassword) => {
+  const token = localStorage.getItem("access");
+
+  const res = await axios.post(
+    `${API}/change-password/`,
+    {
+      old_password: oldPassword,
+      new_password: newPassword,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
 
   return res.data;
 };

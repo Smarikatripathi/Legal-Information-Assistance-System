@@ -14,9 +14,7 @@ import { useNavigate } from "react-router-dom";
 const Sidebar = ({
   sidebarOpen,
   setSidebarOpen,
-  messages,
   setMessages,
-  conversationId,
   setConversationId,
 }) => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -27,8 +25,10 @@ const Sidebar = ({
   };
 
   const handleNewChat = () => {
+    setSidebarOpen(false);
     setMessages([]);
     setConversationId(null);
+    navigate("/dashboard");
   };
 
   const handleLogout = () => {
@@ -41,9 +41,10 @@ const Sidebar = ({
     navigate("/");
   };
 
-  const handleProfile = () =>{
+  const handleProfile = () => {
+    setSidebarOpen(false);
     navigate("/dashboard/profile");
-  }
+  };
 
   return (
     <>
@@ -62,29 +63,31 @@ const Sidebar = ({
 
       <aside
         className={`
-          fixed
-          top-0
-          left-0
-          h-screen
-          w-72
-          lg:w-80
-          bg-white/95
-          backdrop-blur-md
-          border-r
-          border-border
-          z-50
-          flex
-          flex-col
-          transition-transform
-          duration-300
-          ease-in-out
+    fixed
+    top-14
+    left-0
+    h-[calc(100vh-3.5rem)]
+    w-72
+    lg:w-80
+    bg-white/95
+    backdrop-blur-md
+    border-r
+    border-border
+    z-50
+    flex
+    flex-col
+    transition-transform
+    duration-300
+    ease-in-out
 
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+    ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
 
-          lg:translate-x-0
-          lg:static
-          lg:flex
-        `}
+    lg:translate-x-0
+    lg:relative
+    lg:top-0
+    lg:h-full
+    lg:shrink-0
+  `}
       >
         {/* Logo */}
 
@@ -170,37 +173,34 @@ const Sidebar = ({
             Logout
           </button>
         </div>
-
-      
       </aside>
-        {showLogoutModal && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-100">
-            <div className="bg-white rounded-xl p-6 w-sm shadow-lg text-center">
-             
+      {showLogoutModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-100">
+          <div className="bg-white rounded-xl p-6 w-sm shadow-lg text-center">
+            <p className="text-sm text-foreground mb-6">
+              Are you sure you want to logout?
+            </p>
 
-              <p className="text-sm text-foreground mb-6">
-                Are you sure you want to logout?
-              </p>
+            <div className="flex gap-15 justify-center">
+              <Button
+                onClick={() => setShowLogoutModal(false)}
+                className="  rounded-lg border"
+              >
+                Cancel
+              </Button>
 
-              <div className="flex gap-15 justify-center">
-                <Button
-                  onClick={() => setShowLogoutModal(false)}
-                  className="  rounded-lg border"
-                >
-                  Cancel
-                </Button>
-
-                <Button
-                  onClick={handleLogout}
-                  variant="gradient"
-                  className=" rounded-lg  text-white" size="md"
-                >
-                  Logout
-                </Button>
-              </div>
+              <Button
+                onClick={handleLogout}
+                variant="gradient"
+                className=" rounded-lg  text-white"
+                size="md"
+              >
+                Logout
+              </Button>
             </div>
           </div>
-        )}
+        </div>
+      )}
     </>
   );
 };
