@@ -37,9 +37,9 @@ def clean_text(text: str) -> str:
     for pattern, replacement in WHITESPACE_RULES:
         cleaned = pattern.sub(replacement, cleaned)
 
-    # Preserve legal line breaks before Part/Chapter/Section/Article headers
+    # Preserve legal line breaks before Part/Chapter/Section/Article/Rule/Subrule headers
     header_break = re.compile(
-        r"(?<!\n)\s+(?=(?:Part|Chapter|Section|Article|Clause|भाग|धारा|परिच्छेद|दफा)\s*[\d०-९]+)",
+        r"(?<!\n)\s+(?=(?:Part|Chapter|Section|Article|Clause|Rule|नियम|उपनियम|अनुच्छेद|अनुसूची|भाग|धारा|परिच्छेद|दफा)\s*[\d०-९A-Za-z]+)",
         re.I,
     )
     cleaned = header_break.sub("\n\n", cleaned)

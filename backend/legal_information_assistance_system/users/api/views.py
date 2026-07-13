@@ -31,7 +31,9 @@ from .serializers import (
     SignupSerializer,
     UserSerializer,
 )
-
+from rest_framework import generics
+from ..models import LawyerProfile
+from .serializers import LawyerProfileSerializer
 
 class SignupView(APIView):
     permission_classes = [AllowAny]
@@ -160,3 +162,24 @@ class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericV
 
 class TokenRefreshAPIView(TokenRefreshView):
     permission_classes = [AllowAny]
+
+class LawyerListAPIView(generics.ListAPIView):
+    """
+    Returns all lawyer profiles.
+    """
+
+    serializer_class = LawyerProfileSerializer
+    permission_classes = [AllowAny]
+
+    queryset = LawyerProfile.objects.all().order_by("full_name")
+
+
+class LawyerDetailAPIView(generics.RetrieveAPIView):
+    """
+    Returns a single lawyer profile.
+    """
+
+    serializer_class = LawyerProfileSerializer
+    permission_classes = [AllowAny]
+
+    queryset = LawyerProfile.objects.all()

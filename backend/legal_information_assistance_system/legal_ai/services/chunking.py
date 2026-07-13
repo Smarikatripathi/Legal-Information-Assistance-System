@@ -1,47 +1,56 @@
 import re
 from typing import Any, Dict, List, Optional
 
-# Legal structure markers (English + Nepali)
 PART_PATTERN = re.compile(
-    r"^(?:Part|भाग)\s*[-–]?\s*([\d०-९]+|[A-Za-z]+)\b",
+    r"^(?:Part|भाग)\s*[-–]?\s*([\d०-९]+|[A-Za-z]+)(?:\s+(.*))?$",
     re.I | re.M,
 )
 CHAPTER_PATTERN = re.compile(
-    r"^(?:Chapter|परिच्छेद)\s*[-–]?\s*([\d०-९]+|[A-Za-z\s]+)\b",
+    r"^(?:Chapter|परिच्छेद)\s*[-–]?\s*([\d०-९]+|[A-Za-z\s]+)(?:\s+(.*))?$",
+    re.I | re.M,
+)
+RULE_PATTERN = re.compile(
+    r"^(?:Rule|नियम|उपनियम|अनुच्छेद|अनुसूची)\s*[-–]?\s*([\d०-९A-Za-z]+)(?:\s+(.*))?$",
     re.I | re.M,
 )
 SECTION_PATTERN = re.compile(
-    r"^(?:Section|धारा|दफा)\s*[-–]?\s*([\d०-९]+)\b",
+    r"^(?:Section|धारा|दफा)\s*[-–]?\s*([\d०-९]+)(?:\s+(.*))?$",
     re.I | re.M,
 )
 ARTICLE_PATTERN = re.compile(
-    r"^(?:Article|अनुच्छेद)\s*[-–]?\s*([\d०-९]+)\b",
+    r"^(?:Article|अनुच्छेद)\s*[-–]?\s*([\d०-९]+)(?:\s+(.*))?$",
     re.I | re.M,
 )
-# Constitution style: "11. To be citizens of Nepal"
 NUMBERED_ARTICLE_PATTERN = re.compile(
     r"^(\d{1,3})\.\s+([A-Z\u0900-\u097F][^\n]{5,120})$",
     re.M,
 )
 CLAUSE_PATTERN = re.compile(
-    r"^(?:Clause|\(\d+\))\s*[-–]?\s*([\d०-९]+)?",
+    r"^(?:Clause|\(\d+\)|\([ivxIVX]+\)|\d+\))\s*[-–]?\s*([\d०-९]+)?",
     re.I | re.M,
 )
+SUBRULE_PATTERN = re.compile(r"^(\(?[ivxIVX]+\)|\(?\d+\))\s+", re.I | re.M)
 
 HEADER_PATTERN = re.compile(
-    r"(?:^|\n)"
-    r"(?:"
-    r"Part\s*[-–]?\s*[\d०-९A-Za-z]+"
-    r"|Chapter\s*[-–]?\s*[\d०-९A-Za-z\s]+"
-    r"|Section\s*[-–]?\s*[\d०-९]+"
-    r"|Article\s*[-–]?\s*[\d०-९]+"
-    r"|Clause\s*[-–]?\s*[\d०-९]+"
-    r"|धारा\s*[\d०-९]+"
-    r"|भाग\s*[\d०-९]+"
-    r"|परिच्छेद\s*[\d०-९]+"
-    r"|दफा\s*[\d०-९]+"
-    r"|\d{1,3}\.\s+[A-Z\u0900-\u097F][^\n]{5,80}"
-    r")",
+    r'(?:^|\n)\s*(?:'
+    r'Part\s*[-–]?\s*[^\n]+'
+    r'|Chapter\s*[-–]?\s*[^\n]+'
+    r'|Section\s*[-–]?\s*[^\n]+'
+    r'|Article\s*[-–]?\s*[^\n]+'
+    r'|Rule\s*[-–]?\s*[^\n]+'
+    r'|धारा\s*[^\n]+'
+    r'|भाग\s*[^\n]+'
+    r'|परिच्छेद\s*[^\n]+'
+    r'|दफा\s*[^\n]+'
+    r'|नियम\s*[-–]?\s*[^\n]+'
+    r'|उपनियम\s*[-–]?\s*[^\n]+'
+    r'|अनुच्छेद\s*[-–]?\s*[^\n]+'
+    r'|अनुसूची\s*[-–]?\s*[^\n]+'
+    r'|Clause\s*[-–]?\s*[^\n]+'
+    r'|\(\d+\)\s+[^\n]+'
+    r'|\([ivxIVX]+\)\s+[^\n]+'
+    r'|\d{1,3}\.\s+[A-Z\u0900-\u097F][^\n]{5,80}'
+    r')',
     re.I | re.M,
 )
 
@@ -54,7 +63,6 @@ def _extract_title(content: str) -> str:
 
 
 def _parse_header(header: str, context: Dict[str, Optional[str]]) -> Dict[str, Optional[str]]:
-    """Update hierarchy context from a detected legal header."""
     ctx = dict(context)
     header = header.strip()
 
@@ -63,14 +71,30 @@ def _parse_header(header: str, context: Dict[str, Optional[str]]) -> Dict[str, O
         ctx["chapter"] = None
         ctx["section"] = None
         ctx["article"] = None
+        ctx["rule"] = None
+        ctx["subrule"] = None
         ctx["clause"] = None
+        if m.group(2):
+            ctx["title"] = m.group(2).strip()
         return ctx
 
     if m := CHAPTER_PATTERN.match(header):
         ctx["chapter"] = f"Chapter-{m.group(1).strip()}"
         ctx["section"] = None
         ctx["article"] = None
+        ctx["rule"] = None
+        ctx["subrule"] = None
         ctx["clause"] = None
+        if m.group(2):
+            ctx["title"] = m.group(2).strip()
+        return ctx
+
+    if m := RULE_PATTERN.match(header):
+        ctx["rule"] = f"Rule-{m.group(1)}"
+        ctx["subrule"] = None
+        ctx["clause"] = None
+        if m.group(2):
+            ctx["title"] = m.group(2).strip()
         return ctx
 
     if m := SECTION_PATTERN.match(header):
@@ -78,11 +102,15 @@ def _parse_header(header: str, context: Dict[str, Optional[str]]) -> Dict[str, O
         ctx["section"] = num
         ctx["dhara"] = num
         ctx["clause"] = None
+        if m.group(2):
+            ctx["title"] = m.group(2).strip()
         return ctx
 
     if m := ARTICLE_PATTERN.match(header):
         ctx["article"] = m.group(1)
         ctx["clause"] = None
+        if m.group(2):
+            ctx["title"] = m.group(2).strip()
         return ctx
 
     if m := NUMBERED_ARTICLE_PATTERN.match(header):
@@ -95,14 +123,15 @@ def _parse_header(header: str, context: Dict[str, Optional[str]]) -> Dict[str, O
         ctx["clause"] = m.group(1) or header
         return ctx
 
+    if m := SUBRULE_PATTERN.match(header):
+        ctx["subrule"] = m.group(1)
+        return ctx
+
     return ctx
 
 
-class SmartLegalChunker:
-    """
-    Legal-structure-aware chunker for Nepal legal documents.
-    Chunks by Part / Chapter / Section / Article — not by character count.
-    """
+class LegalChunker:
+    """Structure-aware chunker for Nepal legal documents (Part / Chapter / Rule / Section / Article / Clause)."""
 
     def __init__(self, max_words: int = 400):
         self.max_words = max_words
@@ -122,13 +151,11 @@ class SmartLegalChunker:
         return sections
 
     def _split_large_section(self, content: str) -> List[str]:
-        """Split only when a legal unit exceeds max_words — at clause/sentence boundaries."""
         words = content.split()
         if len(words) <= self.max_words:
             return [content]
 
-        # Try splitting at numbered clauses: (1), (2), etc.
-        clause_splits = re.split(r"(?<=\))\s+(?=\(\d+\))", content)
+        clause_splits = re.split(r"(?<=\))\s+(?=\(\d+\))|(?<=\n)(?=उपनियम|अनुच्छेद|अनुसूची)", content)
         if len(clause_splits) > 1:
             chunks: List[str] = []
             current: List[str] = []
@@ -146,7 +173,6 @@ class SmartLegalChunker:
                 chunks.append(" ".join(current))
             return chunks
 
-        # Sentence boundary fallback
         sentences = re.split(r"(?<=[.!?।])\s+", content)
         chunks = []
         current: List[str] = []
@@ -174,6 +200,8 @@ class SmartLegalChunker:
             "chapter": None,
             "section": None,
             "article": None,
+            "rule": None,
+            "subrule": None,
             "clause": None,
             "dhara": None,
             "title": None,
@@ -191,9 +219,7 @@ class SmartLegalChunker:
                 if not context.get("title"):
                     context["title"] = _extract_title(content)
 
-            sub_chunks = self._split_large_section(content)
-
-            for sub in sub_chunks:
+            for sub in self._split_large_section(content):
                 if len(sub.split()) < 15:
                     continue
 
@@ -203,6 +229,8 @@ class SmartLegalChunker:
                     "chapter": context.get("chapter") or "",
                     "section": context.get("section") or "",
                     "article": context.get("article") or "",
+                    "rule": context.get("rule") or "",
+                    "subrule": context.get("subrule") or "",
                     "clause": context.get("clause") or "",
                     "dhara": context.get("dhara") or context.get("section") or "",
                     "title": context.get("title") or _extract_title(sub),
@@ -215,6 +243,8 @@ class SmartLegalChunker:
                     "chapter": metadata["chapter"],
                     "section": metadata["section"],
                     "article": metadata["article"],
+                    "rule": metadata["rule"],
+                    "subrule": metadata["subrule"],
                     "clause": metadata["clause"],
                     "dhara": metadata["dhara"],
                     "metadata": metadata,
@@ -223,3 +253,7 @@ class SmartLegalChunker:
                 chunk_index += 1
 
         return all_chunks
+
+
+# Backward-compatible alias
+SmartLegalChunker = LegalChunker

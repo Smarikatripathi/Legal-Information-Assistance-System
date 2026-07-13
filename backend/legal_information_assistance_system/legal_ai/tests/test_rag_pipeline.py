@@ -1,8 +1,25 @@
 from django.test import TestCase
 
-from legal_ai.services.hybrid_retrieval import extract_legal_numbers, hybrid_score, keyword_score
-from legal_ai.services.smart_chunking import SmartLegalChunker
-from legal_ai.services.text_cleaning import clean_text
+from legal_information_assistance_system.legal_ai.services.chunking import SmartLegalChunker
+from legal_information_assistance_system.legal_ai.services.hybrid_retrieval import (
+    extract_legal_numbers,
+    hybrid_score,
+    keyword_score,
+)
+from legal_information_assistance_system.legal_ai.services.nepali_font_converter import (
+    convert_legacy_to_unicode,
+    is_legacy_font,
+    is_unicode_text,
+)
+from legal_information_assistance_system.legal_ai.services.pdf_loader import (
+    _is_text_based,
+    is_scanned_pdf,
+)
+from legal_information_assistance_system.legal_ai.services.text_cleaning import clean_text
+
+# Sample legacy Preeti text (Aviation Safety Regulation Rules).
+LEGACY_PREETI_SAMPLE = "xjfO{ ;'/Iff -Joj:yf_ lgodfjnL"
+LEGACY_PREETI_UNICODE = "हवाई सरक्षा (व्यवस्था) नियमावली"
 
 
 class TextCleaningTests(TestCase):
@@ -11,6 +28,45 @@ class TextCleaningTests(TestCase):
         cleaned = clean_text(raw)
         self.assertIn("Section 70", cleaned)
         self.assertNotIn("   ", cleaned)
+
+
+class NepaliFontConverterTests(TestCase):
+    def test_detects_unicode_nepali(self):
+        text = "यो कानून धारा १ र ऐन सम्बन्धी हो।"
+        self.assertTrue(is_unicode_text(text))
+        self.assertFalse(is_legacy_font(text))
+
+    def test_detects_legacy_preeti_text(self):
+        self.assertFalse(is_unicode_text(LEGACY_PREETI_SAMPLE))
+        self.assertTrue(is_legacy_font(LEGACY_PREETI_SAMPLE))
+
+    def test_converts_legacy_preeti_to_unicode(self):
+        converted = convert_legacy_to_unicode(LEGACY_PREETI_SAMPLE)
+        self.assertTrue(is_unicode_text(converted))
+        self.assertIn("हवाई", converted)
+        self.assertIn("नियमावली", converted)
+
+    def test_unicode_text_is_not_reconverted(self):
+        text = "नेपालको संविधान"
+        self.assertEqual(convert_legacy_to_unicode(text), text)
+
+
+class PdfExtractionTests(TestCase):
+    def test_treats_nepali_legal_text_with_markers_as_text_based(self):
+        pages = ["This legal text discusses धारा १ and ऐन in the context of citizenship."]
+        self.assertTrue(_is_text_based(pages))
+
+    def test_treats_converted_legacy_text_as_text_based(self):
+        converted = convert_legacy_to_unicode(LEGACY_PREETI_SAMPLE)
+        self.assertTrue(_is_text_based([converted]))
+
+    def test_legacy_text_not_classified_as_scanned(self):
+        pages = [LEGACY_PREETI_SAMPLE]
+        self.assertFalse(is_scanned_pdf("nonexistent.pdf", pages))
+
+    def test_unicode_text_not_classified_as_scanned(self):
+        pages = [LEGACY_PREETI_UNICODE]
+        self.assertFalse(is_scanned_pdf("nonexistent.pdf", pages))
 
 
 class SmartChunkingTests(TestCase):

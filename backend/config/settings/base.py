@@ -63,6 +63,9 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
+        "OPTIONS": {
+            "timeout": 90,
+        },
     }
 }
 
@@ -102,15 +105,16 @@ THIRD_PARTY_APPS = [
     "django_celery_beat",
     "rest_framework",
     "rest_framework.authtoken",
-    "corsheaders",
+    
     "drf_spectacular",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
+    "corsheaders",
 ]
 
 LOCAL_APPS = [
     "legal_information_assistance_system.users",
-    "legal_ai",
+    "legal_information_assistance_system.legal_ai",
     
     # Your stuff: custom apps go here
 ]
@@ -160,7 +164,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#middleware
 MIDDLEWARE = [
+    
     "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -414,6 +420,12 @@ JAZZMIN_SETTINGS = {
     "custom_links": {
         "legal_ai": [
             {
+                "name": "Ingestion Dashboard",
+                "url": "/admin/legal-ai/ingestion/",
+                "icon": "fas fa-stream",
+                "permissions": ["legal_ai.view_legaldocument"],
+            },
+            {
                 "name": "RAG Analytics",
                 "url": "/admin/legal-ai/analytics/",
                 "icon": "fas fa-chart-bar",
@@ -444,12 +456,23 @@ JAZZMIN_SETTINGS = {
 # RAG / Legal AI
 # ------------------------------------------------------------------------------
 RAG_EMBEDDING_MODEL = "intfloat/multilingual-e5-base"
-RAG_MIN_SCORE = 0.35  # Lowered from 0.55 to allow weaker but valid results
+RAG_MIN_SCORE = 0.35
 RAG_DENSE_WEIGHT = 0.7
 RAG_KEYWORD_WEIGHT = 0.3
-RAG_RETRIEVAL_CANDIDATES = 20
+RAG_RETRIEVAL_CANDIDATES = 15
 RAG_FINAL_TOP_K = 5
+RAG_CHUNK_SIZE = 1000
+RAG_CHUNK_OVERLAP = 150
+RAG_DOMAIN_CLASSIFIER_ENABLED = True
+RAG_LAW_COMMISSION_BASE_URL = "https://lawcommission.gov.np/"
+SCRAPER_VERIFY_SSL = False  # repository.lawcommission.gov.np has expired TLS cert
 FAISS_INDEX_DIR = BASE_DIR / "faiss_store"
+
+# LLM (Ollama) — use CPU when GPU CUDA kernels fail on Windows
+LEGAL_LLM_PROVIDER = env("LEGAL_LLM_PROVIDER", default="ollama")
+LEGAL_LLM_MODEL = env("LEGAL_LLM_MODEL", default="llama3.2:latest")
+OLLAMA_HOST = env("OLLAMA_HOST", default="http://127.0.0.1:11434")
+OLLAMA_NUM_GPU = env.int("OLLAMA_NUM_GPU", default=0)
 
 from datetime import timedelta
 
@@ -467,5 +490,6 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_CREDENTIALS = True
 
-CORS_ALLOW_CREDENTIALS = True 
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 100000

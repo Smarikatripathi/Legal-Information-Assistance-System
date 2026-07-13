@@ -1,12 +1,13 @@
 from django.core.management.base import BaseCommand
 
-from legal_ai.models import LegalChunk, LegalDocument
-from legal_ai.services.rag_pipeline import process_pdf, rebuild_index_from_chunks, sync_vector_store
-from legal_ai.storage.vector_db import FAISSService
+from legal_information_assistance_system.legal_ai.models import LegalChunk, LegalDocument
+from legal_information_assistance_system.legal_ai.services.ingestion import process_document
+from legal_information_assistance_system.legal_ai.services.retrieval import rebuild_faiss_index, sync_vector_store
+from legal_information_assistance_system.legal_ai.storage.vector_db import FAISSService
 
 
 class Command(BaseCommand):
-    help = "Rebuild FAISS vector index from database chunks. Use --clear to wipe stale index first."
+    help = "Rebuild FAISS vector index from database chunks."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -30,7 +31,7 @@ class Command(BaseCommand):
             self.stdout.write(f"Reprocessing {docs.count()} documents...")
             for doc in docs:
                 self.stdout.write(f"  Processing: {doc.title}")
-                result = process_pdf(doc.id)
+                result = process_document(doc.id, rebuild_faiss=False)
                 if result.get("status") != "success":
                     self.stdout.write(self.style.ERROR(f"    Failed: {result.get('message')}"))
                 else:
@@ -39,10 +40,10 @@ class Command(BaseCommand):
         sync_vector_store()
         chunk_count = LegalChunk.objects.count()
         if chunk_count == 0:
-            self.stdout.write(self.style.WARNING("No chunks in database. Upload PDFs first."))
+            self.stdout.write(self.style.WARNING("No chunks in database. Run ingest_pdfs first."))
             return
 
-        ok = rebuild_index_from_chunks()
+        ok = rebuild_faiss_index()
         if ok:
             info = FAISSService().inspect_index()
             self.stdout.write(self.style.SUCCESS(

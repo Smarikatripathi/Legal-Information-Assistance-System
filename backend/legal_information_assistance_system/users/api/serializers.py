@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
+from legal_information_assistance_system.users.models import LawyerProfile
+
 User = get_user_model()
 
 
@@ -66,3 +68,26 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "username": {"required": False},
         }
+
+
+class LawyerProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LawyerProfile
+        fields = [
+            "id",
+            "full_name",
+            "profile_image",
+            "specialization",
+            "years_of_experience",
+            "city",
+            "bio",
+            "license_number",
+            "bar_association",
+            "education",
+            "languages",
+            "phone",
+            "email",
+            "office_address",
+            "created_at",
+            "updated_at",
+        ]

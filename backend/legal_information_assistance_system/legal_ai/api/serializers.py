@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from legal_ai.models import Conversation, LegalDocument, Message, QueryHistory
+from legal_information_assistance_system.legal_ai.models import Conversation, LegalDocument, Message, QueryHistory
 
 
 class LegalDocumentUploadSerializer(serializers.ModelSerializer):

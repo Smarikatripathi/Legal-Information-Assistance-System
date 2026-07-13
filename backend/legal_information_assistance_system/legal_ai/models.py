@@ -23,11 +23,20 @@ class LegalDocument(models.Model):
         ("failed", "Failed"),
     ]
 
+    SOURCE_TYPES = [
+        ("pdf", "PDF Upload"),
+        ("website", "Website"),
+    ]
+
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     document_type = models.CharField(max_length=100, choices=DOCUMENT_TYPES)
-    file = models.FileField(upload_to="legal_docs/")
+    source_type = models.CharField(max_length=20, choices=SOURCE_TYPES, default="pdf")
+    source_url = models.URLField(max_length=500, blank=True)
+    act_name = models.CharField(max_length=255, blank=True)
+    file = models.FileField(upload_to="legal_docs/", blank=True, null=True)
     published_year = models.IntegerField(null=True, blank=True)
+    last_updated = models.DateField(null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     extracted_text = models.TextField(blank=True)
@@ -91,13 +100,21 @@ class LegalChunk(models.Model):
         return f"{self.doc.title} — {label}"
 
     def to_metadata(self) -> dict:
+        source_file = self.doc.file.name if self.doc.file else ""
         return {
             "chunk_id": self.pk,
             "doc_id": self.doc_id,
             "document_name": self.doc.title,
+            "document_title": self.doc.title,
             "document_type": self.doc.document_type,
-            "source_file": self.doc.file.name,
+            "act_name": self.doc.act_name or self.doc.title,
+            "source_type": self.doc.source_type,
+            "source_url": self.doc.source_url,
+            "source_file": source_file,
+            "url": self.doc.source_url,
             "year": self.doc.published_year,
+            "publication_date": str(self.doc.published_year) if self.doc.published_year else "",
+            "last_updated": str(self.doc.last_updated) if self.doc.last_updated else "",
             "part": self.part,
             "chapter": self.chapter,
             "section": self.section,

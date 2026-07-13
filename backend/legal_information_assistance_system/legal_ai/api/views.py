@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from legal_ai.api.serializers import (
+from legal_information_assistance_system.legal_ai.api.serializers import (
     ConversationSerializer,
     LegalDocumentSerializer,
     LegalDocumentUploadSerializer,
@@ -13,8 +13,9 @@ from legal_ai.api.serializers import (
     QueryHistorySerializer,
     QuerySerializer,
 )
-from legal_ai.models import Conversation, LegalDocument, Message, QueryHistory
-from legal_ai.services.rag_pipeline import answer_query, process_pdf
+from legal_information_assistance_system.legal_ai.models import Conversation, LegalDocument, Message, QueryHistory
+from legal_information_assistance_system.legal_ai.services.rag_pipeline import answer_query
+from legal_information_assistance_system.legal_ai.tasks import crawl_law_commission, process_document_embeddings
 
 
 class UploadPDFView(APIView):
@@ -27,20 +28,15 @@ class UploadPDFView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         document = serializer.save()
-        result = process_pdf(document.id)
-
-        if result.get("status") != "success":
-            return Response(result, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        process_document_embeddings.delay(document.id)
 
         return Response(
             {
-                "message": "PDF uploaded and indexed successfully.",
+                "message": "PDF uploaded. Processing in background.",
                 "document_id": document.id,
-                "chunk_count": result.get("chunk_count", 0),
-                "page_count": result.get("page_count", 0),
-                "processing_status": document.processing_status,
+                "processing_status": "pending",
             },
-            status=status.HTTP_201_CREATED,
+            status=status.HTTP_202_ACCEPTED,
         )
 
 
@@ -139,3 +135,19 @@ class QueryHistoryListView(APIView):
     def get(self, request):
         qs = QueryHistory.objects.filter(user=request.user)[:100]
         return Response(QueryHistorySerializer(qs, many=True).data)
+
+
+class CrawlLawCommissionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        max_pages = int(request.data.get("max_pages", 50))
+        task = crawl_law_commission.delay(max_pages=max_pages)
+        return Response(
+            {
+                "message": "Law Commission PDF download started. Run ingest_pdfs after crawl completes.",
+                "task_id": task.id,
+                "max_pages": max_pages,
+            },
+            status=status.HTTP_202_ACCEPTED,
+        )

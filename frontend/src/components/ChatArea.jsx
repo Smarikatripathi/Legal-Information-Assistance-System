@@ -8,30 +8,34 @@ import ChatInput from "./ChatInput";
 import { sendMessage } from "../services/chatService";
 import MessageBubble from "./MessageBubble";
 
+const EMPTY_MESSAGES = [];
+
 const ChatArea = () => {
   const context = useOutletContext();
+  const [input, setInput] = useState("");
+  const bottomRef = useRef(null);
+  const messages = context?.messages ?? EMPTY_MESSAGES;
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  }, [messages]);
 
   if (!context) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex h-full items-center justify-center">
         Loading...
       </div>
     );
   }
 
   const {
-    messages,
     setMessages,
     conversationId,
     setConversationId,
   } = context;
-
-  const [input, setInput] = useState("");
-  const bottomRef = useRef(null);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -59,7 +63,7 @@ const ChatArea = () => {
       if (response.conversation_id) {
         setConversationId(response.conversation_id);
       }
-    } catch (error) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         {
@@ -71,10 +75,10 @@ const ChatArea = () => {
   };
 
   return (
-    <section className="flex flex-col h-full overflow-hidden">
+    <section className="flex h-full min-h-0 flex-col gradient-primary-bg">
 
       {/* SCROLL AREA */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-y-auto">
 
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full px-6 py-10">

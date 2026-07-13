@@ -4,30 +4,19 @@ import urllib.error
 import urllib.request
 from typing import Any
 
-from legal_ai.services.language import language_service
+from legal_information_assistance_system.legal_ai.services.language import language_service
 
 
 LEGAL_SYSTEM_PROMPT_TEMPLATE = """You are a Legal Information Assistant for Nepal law.
 
-GUIDELINES:
-1. Use the provided legal context as primary source when available.
-2. You MAY infer related legal provisions and principles from the context.
-3. You MAY draw logical conclusions from stated laws (e.g., rights granted, duties imposed).
-4. Always cite sources when available: document name, Part, Chapter, Section/Article number.
-5. Explain in clear, simple language suitable for citizens and students.
-6. **IMPORTANT: Respond ONLY in {response_language}. The user asked in {response_language}, so answer in {response_language} only.**
-7. If multiple provisions apply, list them separately with citations.
-8. Do not provide personal legal advice — provide informational summaries only.
-9. NEVER say "information not found" — instead explain what you DO know and limitations.
-10. Use reasoning to answer constitutional and legal questions, even if context is partial.
-
-CONTEXT FORMAT: Each block is labeled [Source N] with document and section metadata.
-
-Answer structure:
-- Direct answer first (based on law + reasoning)
-- Legal citations (if available)
-- Brief explanation
-- Limitations (if applicable)
+STRICT RULES:
+1. Use ONLY the provided legal context — do not invent laws or interpretations.
+2. If context is insufficient, say: "The provided legal sources do not contain sufficient information to answer this question."
+3. Cite sources inline as [Source N] with document, part, chapter, section/article.
+4. Respond ONLY in {response_language}.
+5. Do not provide personal legal advice — provide legal information only.
+6. Format answers in Markdown: headings (##), bullet/numbered lists, tables when useful.
+7. End with a ## Sources section listing citations and links when available.
 """
 
 
@@ -39,10 +28,12 @@ class LegalLLM:
         ollama_host: str | None = None,
     ):
         self.provider = (provider or os.getenv("LEGAL_LLM_PROVIDER", "ollama")).lower()
-        self.model = model or os.getenv("LEGAL_LLM_MODEL", "llama3:latest")
+        self.model = model or os.getenv("LEGAL_LLM_MODEL", "llama3.2:latest")
         self.ollama_host = ollama_host or os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434")
         self.openai_model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-        self.ollama_chat_endpoint = os.getenv("OLLAMA_CHAT_ENDPOINT", "/v1/chat/completions")
+        self.ollama_chat_endpoint = os.getenv("OLLAMA_CHAT_ENDPOINT", "/api/chat")
+        # Force CPU inference when GPU CUDA kernels fail (common on Windows + older drivers).
+        self.ollama_num_gpu = int(os.getenv("OLLAMA_NUM_GPU", "0"))
         
         # Language mappings
         self.language_names = {
@@ -57,26 +48,21 @@ class LegalLLM:
         if self.provider == "ollama":
             return self._ollama_call(query, context)
         return self._mock_response()
+
+    def generate_from_prompt(self, full_prompt: str, *, query_language: str = "en") -> str:
+        """Generate from a pre-built LangChain prompt (system + user combined)."""
+        if self.provider == "openai":
+            return self._openai_call(full_prompt)
+        if self.provider == "ollama":
+            return self._ollama_call_from_prompt(full_prompt, query_language=query_language)
+        return self._mock_response()
     
     def generate_without_context(self, query: str) -> str:
-        """Fallback: answer legal questions without retrieval context using reasoning."""
+        """Deprecated: grounded RAG should not call this path."""
         detected_lang = language_service.detect_language(query)
-        response_lang = self.language_names.get(detected_lang, "English")
-        
-        if self.provider == "openai":
-            fallback_prompt = (
-                f"You are a Legal Information Assistant for Nepal law.\n"
-                f"Respond in {response_lang} only.\n\n"
-                f"The user is asking about Nepal law, but no specific legal document context is available.\n"
-                f"Based on your knowledge of Nepal's Constitution, Civil Code, and Criminal Code, provide the best answer you can.\n"
-                f"If you don't know the answer, be honest about the limitations.\n\n"
-                f"Question: {query}\n\n"
-                f"Answer:"
-            )
-            return self._openai_call(fallback_prompt)
-        if self.provider == "ollama":
-            return self._ollama_call(query, context=None, fallback=True)
-        return "I don't have enough information to answer this question about Nepal law."
+        if detected_lang == "ne":
+            return "प्रदान गरिएका कानूनी स्रोतहरूमा यो प्रश्नको लागि पर्याप्त जानकारी छैन।"
+        return "The provided legal sources do not contain sufficient information to answer this question."
 
     def build_prompt(self, query: str, context: str) -> str:
         # Detect query language
@@ -138,8 +124,8 @@ class LegalLLM:
         )
 
         try:
-            # Increased timeout to 120 seconds for complex legal analysis
-            with urllib.request.urlopen(request, timeout=120) as response:
+            # Increased timeout to 320 seconds for complex legal analysis
+            with urllib.request.urlopen(request, timeout=320) as response:
                 payload = json.loads(response.read().decode("utf-8"))
 
             response_text = self._extract_ollama_response(payload)
@@ -161,9 +147,8 @@ class LegalLLM:
 
         if fallback or not context:
             user_content = (
-                f"The user is asking about Nepal law, but no specific legal document context is available.\n"
-                f"Based on your knowledge of Nepal's Constitution, Civil Code, and Criminal Code, provide the best answer you can.\n"
-                f"If you don't know the answer, be honest about the limitations.\n\n"
+                f"No legal document context was retrieved.\n"
+                f"Respond that the provided legal sources do not contain sufficient information.\n\n"
                 f"Question: {query}"
             )
         else:
@@ -172,19 +157,65 @@ class LegalLLM:
                 f"Question: {query}"
             )
 
-        return {
+        payload: dict[str, Any] = {
             "model": self.model,
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_content},
             ],
             "temperature": 0.1,
-            "max_tokens": 1024,
+            "max_tokens": 1536,
         }
+        if self.ollama_num_gpu >= 0:
+            payload["options"] = {"num_gpu": self.ollama_num_gpu}
+        payload["stream"] = False
+        return payload
+
+    def _ollama_call_from_prompt(self, full_prompt: str, *, query_language: str = "en") -> str:
+        response_lang = self.language_names.get(query_language, "English")
+        system_prompt = LEGAL_SYSTEM_PROMPT_TEMPLATE.format(response_language=response_lang)
+        request_body: dict[str, Any] = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": full_prompt},
+            ],
+            "temperature": 0.1,
+            "max_tokens": 1536,
+        }
+        if self.ollama_num_gpu >= 0:
+            request_body["options"] = {"num_gpu": self.ollama_num_gpu}
+        request_body["stream"] = False
+        request = urllib.request.Request(
+            f"{self.ollama_host}{self.ollama_chat_endpoint}",
+            data=json.dumps(request_body).encode("utf-8"),
+            headers={"Content-Type": "application/json", "Accept": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=120) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            response_text = self._extract_ollama_response(payload)
+            if response_text:
+                return response_text
+            raise RuntimeError("Ollama responded without valid text")
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="ignore")
+            raise RuntimeError(
+                f"Ollama call failed ({exc.code}): {exc.reason}. Response body: {body}"
+            ) from exc
+        except Exception as exc:
+            raise RuntimeError(f"Ollama call failed: {exc}") from exc
 
     def _extract_ollama_response(self, payload: Any) -> str:
         if not isinstance(payload, dict):
             return ""
+
+        # Native Ollama /api/chat response
+        if "message" in payload and isinstance(payload["message"], dict):
+            content = payload["message"].get("content")
+            if content:
+                return str(content).strip()
 
         # OpenAI-style chat completion response
         if "choices" in payload and isinstance(payload["choices"], list) and payload["choices"]:

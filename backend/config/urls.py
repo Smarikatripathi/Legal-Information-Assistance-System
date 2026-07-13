@@ -38,7 +38,11 @@ urlpatterns += [
         SpectacularSwaggerView.as_view(url_name="api-schema"),
         name="api-docs",
     ),
-    path("api/", include("legal_ai.api.urls")),
+    path("api/", include("legal_information_assistance_system.legal_ai.api.urls")),
+    path(
+        "api/",
+        include("legal_information_assistance_system.users.api.urls"),
+    ),
 ]
 
 if settings.DEBUG:

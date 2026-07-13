@@ -273,20 +273,20 @@
 
 
   .sidebar-link:hover {
-  background: rgba(30, 58, 138, 0.08);
+    background: rgba(30, 58, 138, 0.08);
 
-  transform: translateX(4px);
+    transform: translateX(4px);
+  }
 
   .sidebar-link-active {
-  background: rgba(30, 58, 138, 0.1);
+    background: rgba(30, 58, 138, 0.1);
 
-  border: 1px solid rgba(30, 58, 138, 0.15);
+    border: 1px solid rgba(30, 58, 138, 0.15);
 
-  color: var(--color-primary);
+    color: var(--color-primary);
 
-  font-weight: 600;
-}
-}
+    font-weight: 600;
+  }
 
 }
 
@@ -307,6 +307,7 @@
     );
 
   }
+  
 
 .gradient-primary-bg {
 
@@ -317,6 +318,19 @@
     color-mix(in srgb, var(--color-accent) 20%, transparent),
 
     color-mix(in srgb, var(--color-primary) 20%, transparent)
+
+  );
+
+}
+.gradient-primary-header {
+
+  background: linear-gradient(
+
+    135deg,
+
+    color-mix(in srgb, var(--color-accent) 90%, transparent),
+
+    color-mix(in srgb, var(--color-primary) 90%, transparent)
 
   );
 
@@ -412,6 +426,81 @@
 
     animation-delay: 400ms;
 
+  }
+
+  .legal-markdown h2 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    color: var(--color-primary);
+  }
+
+  .legal-markdown h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-top: 0.75rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .legal-markdown p {
+    margin-bottom: 0.65rem;
+    line-height: 1.6;
+  }
+
+  .legal-markdown ul,
+  .legal-markdown ol {
+    margin: 0.5rem 0 0.75rem 1.25rem;
+    padding-left: 1rem;
+    list-style-position: inside;
+    color: var(--color-foreground);
+  }
+
+  .legal-markdown ul {
+    list-style-type: disc;
+  }
+
+  .legal-markdown ol {
+    list-style-type: decimal;
+  }
+
+  .legal-markdown li {
+    margin-bottom: 0.35rem;
+  }
+
+  .legal-markdown li::marker {
+    color: var(--color-foreground);
+  }
+
+  .legal-markdown table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.75rem 0;
+    font-size: 0.875rem;
+  }
+
+  .legal-markdown th,
+  .legal-markdown td {
+    border: 1px solid var(--color-border);
+    padding: 0.4rem 0.6rem;
+    text-align: left;
+  }
+
+  .legal-markdown th {
+    background: var(--color-muted);
+    font-weight: 600;
+  }
+
+  .legal-markdown a {
+    color: var(--color-primary);
+    text-decoration: underline;
+  }
+
+  .legal-markdown blockquote {
+    border-left: 3px solid var(--color-primary);
+    padding-left: 0.75rem;
+    margin: 0.5rem 0;
+    color: var(--color-muted-foreground);
   }
 
 }

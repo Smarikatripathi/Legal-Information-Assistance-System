@@ -38,7 +38,7 @@ class LegalEmbeddingModel:
             prefixed,
             convert_to_numpy=True,
             normalize_embeddings=True,
-            show_progress_bar=False,
+            show_progress_bar=True,
             batch_size=32,
         )
         return np.asarray(vectors, dtype="float32")

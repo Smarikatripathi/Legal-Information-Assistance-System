@@ -1,6 +1,6 @@
 from typing import Any, Dict, List
 
-from legal_ai.services.hybrid_retrieval import tokenize
+from legal_information_assistance_system.legal_ai.services.hybrid_retrieval import tokenize
 
 
 def rerank_results(query: str, candidates: List[Dict[str, Any]], top_k: int = 5) -> List[Dict[str, Any]]:
