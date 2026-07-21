@@ -101,7 +101,7 @@ class LegalChunk(models.Model):
 
     def to_metadata(self) -> dict:
         source_file = self.doc.file.name if self.doc.file else ""
-        return {
+        base_metadata = {
             "chunk_id": self.pk,
             "doc_id": self.doc_id,
             "document_name": self.doc.title,
@@ -123,8 +123,11 @@ class LegalChunk(models.Model):
             "dhara": self.dhara,
             "title": self.title,
             "text": self.text,
-            **self.metadata,
         }
+        # Merge with existing metadata, preferring new fields if they exist
+        if self.metadata:
+            base_metadata.update(self.metadata)
+        return base_metadata
 
 
 class EmbeddingConfig(models.Model):

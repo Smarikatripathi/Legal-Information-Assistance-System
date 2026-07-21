@@ -1,6 +1,8 @@
 import re
 from typing import Any, Dict, List, Optional
 
+from legal_information_assistance_system.legal_ai.services.language import language_service
+
 PART_PATTERN = re.compile(
     r"^(?:Part|भाग)\s*[-–]?\s*([\d०-९]+|[A-Za-z]+)(?:\s+(.*))?$",
     re.I | re.M,
@@ -60,6 +62,33 @@ def _extract_title(content: str) -> str:
     if len(first_line) <= 200:
         return first_line
     return first_line[:200]
+
+
+def extract_legal_keywords(text: str) -> List[str]:
+    """Extract key legal terms from chunk for better retrieval."""
+    legal_terms_en = [
+        "right", "duty", "liability", "penalty", "offense", "jurisdiction",
+        "contract", "property", "marriage", "divorce", "inheritance",
+        "fundamental", "constitutional", "provision", "section", "article"
+    ]
+    legal_terms_ne = [
+        "अधिकार", "कर्तव्य", "दायित्व", "दण्ड", "अपराध", "अधिकारक्षेत्र",
+        "सम्झौता", "सम्पत्ति", "विवाह", "विवाह विच्छेद", "सम्पत्ति विभाजन",
+        "मौलिक", "संवैधानिक", "व्यवस्था", "धारा", "अनुच्छेद"
+    ]
+    
+    text_lower = text.lower()
+    found = []
+    
+    for term in legal_terms_en:
+        if term in text_lower:
+            found.append(term)
+    
+    for term in legal_terms_ne:
+        if term in text_lower:
+            found.append(term)
+    
+    return found
 
 
 def _parse_header(header: str, context: Dict[str, Optional[str]]) -> Dict[str, Optional[str]]:
@@ -133,8 +162,9 @@ def _parse_header(header: str, context: Dict[str, Optional[str]]) -> Dict[str, O
 class LegalChunker:
     """Structure-aware chunker for Nepal legal documents (Part / Chapter / Rule / Section / Article / Clause)."""
 
-    def __init__(self, max_words: int = 400):
+    def __init__(self, max_words: int = 300, overlap: int = 50):
         self.max_words = max_words
+        self.overlap = overlap
 
     def _split_at_headers(self, text: str) -> List[Dict[str, str]]:
         matches = list(HEADER_PATTERN.finditer(text))
@@ -155,6 +185,7 @@ class LegalChunker:
         if len(words) <= self.max_words:
             return [content]
 
+        # Try clause/subrule splitting first (preserves legal structure)
         clause_splits = re.split(r"(?<=\))\s+(?=\(\d+\))|(?<=\n)(?=उपनियम|अनुच्छेद|अनुसूची)", content)
         if len(clause_splits) > 1:
             chunks: List[str] = []
@@ -173,21 +204,34 @@ class LegalChunker:
                 chunks.append(" ".join(current))
             return chunks
 
+        # Split by sentence boundaries (both English and Nepali)
+        # Nepali uses । (danda) as sentence terminator
         sentences = re.split(r"(?<=[.!?।])\s+", content)
+        
+        # Implement sliding window with overlap
         chunks = []
-        current: List[str] = []
-        current_len = 0
+        current_words = []
+        
         for sentence in sentences:
-            slen = len(sentence.split())
-            if current_len + slen > self.max_words and current:
-                chunks.append(" ".join(current))
-                current = [sentence]
-                current_len = slen
-            else:
-                current.append(sentence)
-                current_len += slen
-        if current:
-            chunks.append(" ".join(current))
+            sentence_words = sentence.split()
+            
+            # Check if adding this sentence would exceed max_words
+            if len(current_words) + len(sentence_words) > self.max_words and current_words:
+                # Save current chunk
+                chunks.append(" ".join(current_words))
+                
+                # Keep overlap words from end of current chunk
+                if self.overlap > 0:
+                    current_words = current_words[-self.overlap:] if len(current_words) >= self.overlap else current_words
+                else:
+                    current_words = []
+            
+            current_words.extend(sentence_words)
+        
+        # Add final chunk if there's remaining content
+        if current_words:
+            chunks.append(" ".join(current_words))
+        
         return chunks
 
     def chunk(self, text: str, document_name: str = "") -> List[Dict[str, Any]]:
@@ -223,6 +267,22 @@ class LegalChunker:
                 if len(sub.split()) < 15:
                     continue
 
+                # Detect language of this chunk
+                chunk_language = language_service.detect_language(sub)
+                
+                # Extract legal keywords for better retrieval
+                keywords = extract_legal_keywords(sub)
+                
+                # Calculate hierarchy depth
+                hierarchy_depth = sum([
+                    1 for field in [context.get("part"), context.get("chapter"), 
+                                   context.get("section"), context.get("article")] 
+                    if field
+                ])
+                
+                # Determine chunk type
+                chunk_type = "definition" if ("define" in sub.lower() or "परिभाषा" in sub) else "provision"
+
                 metadata = {
                     "document_name": document_name,
                     "part": context.get("part") or "",
@@ -234,6 +294,10 @@ class LegalChunker:
                     "clause": context.get("clause") or "",
                     "dhara": context.get("dhara") or context.get("section") or "",
                     "title": context.get("title") or _extract_title(sub),
+                    "language": chunk_language,
+                    "keywords": keywords,
+                    "hierarchy_depth": hierarchy_depth,
+                    "chunk_type": chunk_type,
                 }
 
                 all_chunks.append({

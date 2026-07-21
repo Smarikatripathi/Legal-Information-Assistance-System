@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import List
+from typing import Dict, List
 
 import numpy as np
 from django.conf import settings
@@ -32,14 +32,23 @@ class LegalEmbeddingModel:
     def dimension(self) -> int:
         return self.model.get_sentence_embedding_dimension()
 
-    def embed_passages(self, texts: List[str]) -> np.ndarray:
-        prefixed = [f"{self.PASSAGE_PREFIX}{t}" for t in texts]
+    def embed_passages(self, texts: List[str], metadata: List[Dict] | None = None) -> np.ndarray:
+        """Enhanced embedding with title augmentation for better retrieval."""
+        if metadata and len(metadata) == len(texts):
+            # Augment passages with titles for better semantic signal
+            prefixed = [
+                f"{self.PASSAGE_PREFIX}{meta.get('title', '')} {t}" 
+                for t, meta in zip(texts, metadata)
+            ]
+        else:
+            prefixed = [f"{self.PASSAGE_PREFIX}{t}" for t in texts]
+        
         vectors = self.model.encode(
             prefixed,
             convert_to_numpy=True,
             normalize_embeddings=True,
             show_progress_bar=True,
-            batch_size=32,
+            batch_size=64,  # Increased for better throughput
         )
         return np.asarray(vectors, dtype="float32")
 

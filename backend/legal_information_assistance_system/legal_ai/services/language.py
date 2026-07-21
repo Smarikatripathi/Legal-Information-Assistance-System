@@ -38,14 +38,33 @@ class LanguageService:
 
     def detect_language(self, text: str) -> str:
         """
-        Detect language of user query.
+        Detect language of user query with improved accuracy for mixed content.
+        Prioritizes Nepali when Devanagari characters are present.
         """
         if not text or not text.strip():
             return "en"
 
+        # Check for Devanagari characters first (more reliable than langdetect for Nepali)
+        devanagari_chars = len(re.findall(r'[\u0900-\u097F]', text))
+        total_chars = len(text.replace(' ', ''))
+        
+        # If more than 15% of characters are Devanagari, classify as Nepali
+        if total_chars > 0 and devanagari_chars / total_chars > 0.15:
+            return "ne"
+
         try:
-            return detect(text)
+            detected = detect(text)
+            # langdetect can be unreliable for short queries, double-check with character analysis
+            if detected == "ne":
+                return "ne"
+            if detected == "en" and devanagari_chars > 0:
+                # langdetect said English but we have Devanagari - trust the characters
+                return "ne"
+            return detected
         except Exception:
+            # Fallback to character-based detection
+            if devanagari_chars > 0:
+                return "ne"
             return "en"
 
     def translate_legal_query_to_nepali(self, query: str) -> str:

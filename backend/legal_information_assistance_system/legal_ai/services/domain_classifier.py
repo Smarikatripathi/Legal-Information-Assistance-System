@@ -15,17 +15,23 @@ from legal_information_assistance_system.legal_ai.services.language import langu
 
 NON_LEGAL_PATTERNS = [
     r"\b(joke|jokes|funny|laugh|meme)\b",
-    r"\b(weather|temperature|forecast|rain)\b",
-    r"\b(movie|movies|film|music|song|actor|actress)\b",
-    r"\b(recipe|cook|cooking|food|restaurant|pizza|burger)\b",
-    r"\b(cricket|football|basketball|sport|match|score)\b",
-    r"\b(hello|hi|hey|good morning|good evening|how are you)\b",
+    r"\b(weather|temperature|forecast|rain|snow|wind)\b",
+    r"\b(movie|movies|film|music|song|actor|actress|celebrity)\b",
+    r"\b(recipe|cook|cooking|food|restaurant|pizza|burger|dinner)\b",
+    r"\b(cricket|football|basketball|sport|match|score|game|team)\b",
+    r"\b(hello|hi|hey|good morning|good evening|how are you|thanks|thank you)\b",
 
     r"(जोक|हासो)",
     r"(खाना|रेसिपी|पकाउने)",
     r"(मौसम|तापक्रम)",
     r"(चलचित्र|फिल्म|गीत|संगीत)",
     r"(क्रिकेट|फुटबल|खेल)",
+]
+
+# Legal keywords to override non-legal classification
+LEGAL_KEYWORD_OVERRIDE = [
+    r"\b(law|legal|right|right|court|judge|act|code|section|article|constitution|case|judgment|verdict|lawyer|attorney)\b",
+    r"(कानुन|कानून|अधिकार|अदालत|न्यायाधीश|ऐन|संहिता|धारा|अनुच्छेद|संविधान|मुद्दा|निर्णय|वकील)",
 ]
 
 
@@ -45,6 +51,7 @@ def classify_query(query: str) -> ClassificationResult:
     """
     Reject only obvious non-legal queries.
     Everything else is sent to the retriever.
+    Legal keywords override non-legal patterns.
     """
 
     if not query or not query.strip():
@@ -57,6 +64,16 @@ def classify_query(query: str) -> ClassificationResult:
 
     language = language_service.detect_language(query)
     normalized = _normalize(query)
+
+    # Check for legal keywords first - these override non-legal patterns
+    for pattern in LEGAL_KEYWORD_OVERRIDE:
+        if re.search(pattern, normalized, re.IGNORECASE):
+            return ClassificationResult(
+                True,
+                0.85,
+                "legal_keyword_override",
+                language,
+            )
 
     for pattern in NON_LEGAL_PATTERNS:
         if re.search(pattern, normalized, re.IGNORECASE):

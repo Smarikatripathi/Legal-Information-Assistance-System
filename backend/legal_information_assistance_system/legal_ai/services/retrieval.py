@@ -38,10 +38,12 @@ def rebuild_faiss_index() -> bool:
 
     model = get_embedding_model()
     texts = [c.text for c in chunks]
-    embeddings = model.embed_passages(texts)
+    
+    # Build metadata for title augmentation in embeddings
+    metadata_list = [_build_faiss_metadata(chunk, idx) for idx, chunk in enumerate(chunks)]
+    embeddings = model.embed_passages(texts, metadata=metadata_list)
 
-    metadata = [_build_faiss_metadata(chunk, idx) for idx, chunk in enumerate(chunks)]
-    store.build_index(embeddings, metadata, model_name=model.model_name)
+    store.build_index(embeddings, metadata_list, model_name=model.model_name)
 
     for idx, chunk in enumerate(chunks):
         chunk.embedding_id = idx
@@ -106,7 +108,13 @@ def search(
     reranked = rerank_results(query, candidates, top_k=RETRIEVAL_CANDIDATES)
 
     threshold = min_score if min_score is not None else MIN_SCORE
-    return filter_by_threshold(reranked, min_score=threshold)[:top_k]
+    filtered = filter_by_threshold(reranked, min_score=threshold)
+    
+    # Graceful degradation: if no results pass threshold, return best candidates anyway
+    if not filtered and reranked:
+        filtered = reranked[:top_k]
+    
+    return filtered[:top_k]
 
 
 # Backward-compatible aliases

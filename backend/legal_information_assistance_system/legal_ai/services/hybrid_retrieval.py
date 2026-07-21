@@ -4,6 +4,8 @@ from typing import Any, Dict, List
 
 from django.conf import settings
 
+from legal_information_assistance_system.legal_ai.services.language import language_service
+
 DENSE_WEIGHT = getattr(settings, "RAG_DENSE_WEIGHT", 0.7)
 KEYWORD_WEIGHT = getattr(settings, "RAG_KEYWORD_WEIGHT", 0.3)
 MIN_SCORE = getattr(settings, "RAG_MIN_SCORE", 0.35)  # Lowered from 0.55 to allow weaker but valid results
@@ -101,12 +103,32 @@ def hybrid_score(
     text: str,
     metadata: Dict[str, Any],
 ) -> float:
+    """Language-aware hybrid scoring for better bilingual retrieval."""
+    query_lang = language_service.detect_language(query)
+    text_lang = metadata.get("language", "en")
+    
+    # Adjust weights based on language match
+    if query_lang == text_lang:
+        # Boost semantic similarity when languages match
+        dense_weight = 0.8
+        keyword_weight = 0.2
+    else:
+        # Rely more on keyword matching for cross-language queries
+        dense_weight = 0.6
+        keyword_weight = 0.4
+    
     kw = keyword_score(query, text, metadata)
     meta = metadata_score(query, metadata)
+    
+    # Additional boost for keyword matches in metadata
+    keywords = metadata.get("keywords", [])
+    keyword_boost = 0.05 * len([k for k in keywords if k.lower() in query.lower()])
+    
     combined = (
-        DENSE_WEIGHT * dense_score
-        + KEYWORD_WEIGHT * kw
+        dense_weight * dense_score
+        + keyword_weight * kw
         + 0.1 * meta
+        + keyword_boost
     )
     return min(1.0, combined)
 

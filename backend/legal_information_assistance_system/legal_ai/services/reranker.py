@@ -1,25 +1,72 @@
 from typing import Any, Dict, List
 
 from legal_information_assistance_system.legal_ai.services.hybrid_retrieval import tokenize
+from legal_information_assistance_system.legal_ai.services.language import language_service
+
+
+def extract_legal_concepts(text: str) -> List[str]:
+    """Extract legal concepts using keyword matching."""
+    concepts_en = [
+        "fundamental right", "due process", "liability", "jurisdiction",
+        "contract", "property", "marriage", "divorce", "inheritance",
+        "offense", "penalty", "duty", "constitutional", "provision"
+    ]
+    concepts_ne = [
+        "मौलिक अधिकार", "न्यायिक प्रक्रिया", "दायित्व", "अधिकारक्षेत्र",
+        "सम्झौता", "सम्पत्ति", "विवाह", "विवाह विच्छेद", "सम्पत्ति विभाजन",
+        "अपराध", "दण्ड", "कर्तव्य", "संवैधानिक", "व्यवस्था"
+    ]
+    
+    text_lower = text.lower()
+    found = []
+    
+    for concept in concepts_en:
+        if concept in text_lower:
+            found.append(concept)
+    
+    for concept in concepts_ne:
+        if concept in text_lower:
+            found.append(concept)
+    
+    return found
+
+
+def has_section_number_match(query: str, hit: Dict[str, Any]) -> bool:
+    """Check if query has a section/article number that matches the chunk."""
+    query_tokens = set(tokenize(query))
+    article = hit.get("article") or hit.get("dhara") or ""
+    section = hit.get("section") or ""
+    article_section_str = str(article) + str(section)
+    
+    if article_section_str and any(str(t).isdigit() and str(t) in article_section_str for t in query_tokens):
+        return True
+    return False
 
 
 def rerank_results(query: str, candidates: List[Dict[str, Any]], top_k: int = 5) -> List[Dict[str, Any]]:
     """
-    Rerank top-N candidates using:
+    Enhanced reranking with:
     - Lexical density
     - Metadata relevance
     - Legal section specificity
     - Query-title alignment
+    - Language match boost
+    - Legal concept matching
     """
     if not candidates:
         return []
 
     query_tokens = set(tokenize(query))
     query_lower = query.lower()
+    query_lang = language_service.detect_language(query)
+    
+    # Extract legal concepts from query
+    query_concepts = set(extract_legal_concepts(query))
 
     for hit in candidates:
         text = hit.get("text", "")
         text_tokens = set(tokenize(text))
+        text_lang = hit.get("language", "en")
         
         # Lexical density: how many query tokens appear in text
         density = len(query_tokens & text_tokens) / max(len(query_tokens), 1)
@@ -40,13 +87,20 @@ def rerank_results(query: str, candidates: List[Dict[str, Any]], top_k: int = 5)
         if title and any(t in title for t in query_tokens):
             title_boost = 0.15
         
+        # Language match boost - significant for bilingual retrieval
+        language_boost = 0.0
+        if query_lang == text_lang:
+            language_boost = 0.15
+        
         # Article/section number match is VERY relevant for legal queries
-        article = hit.get("article") or hit.get("dhara") or ""
-        section = hit.get("section") or ""
-        article_section_str = str(article) + str(section)
         article_boost = 0.0
-        if article_section_str and any(str(t).isdigit() and str(t) in article_section_str for t in query_tokens):
-            article_boost = 0.1  # Legal queries with section numbers are very precise
+        if has_section_number_match(query, hit):
+            article_boost = 0.25  # Increased boost for precise section matches
+        
+        # Legal concept matching
+        chunk_concepts = set(extract_legal_concepts(text))
+        concept_overlap = len(query_concepts & chunk_concepts)
+        concept_boost = concept_overlap * 0.05
         
         # Document type alignment (constitution for constitutional questions, etc)
         doc_type = (hit.get("document_type") or "").lower()
@@ -64,7 +118,9 @@ def rerank_results(query: str, candidates: List[Dict[str, Any]], top_k: int = 5)
             hit.get("score", 0) + 
             density * 0.15 + 
             title_boost + 
+            language_boost +
             article_boost +
+            concept_boost +
             doc_boost -
             length_penalty
         )

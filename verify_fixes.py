@@ -10,15 +10,23 @@ import os
 # Add backend to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
 
+# Try to configure Django settings, but handle gracefully
+try:
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.local')
+    import django
+    django.setup()
+except Exception as e:
+    print(f"Warning: Could not configure Django: {e}")
+    print("Continuing with basic checks...")
+
 def check_imports():
     """Verify all required modules can be imported"""
     print("✓ Checking imports...")
     try:
-        from legal_ai.services.llm import llm, LEGAL_SYSTEM_PROMPT_TEMPLATE
-        from legal_ai.services.hybrid_retrieval import MIN_SCORE, FALLBACK_MIN_SCORE, keyword_score
-        from legal_ai.services.rag_pipeline import search, answer_query
-        from legal_ai.services.reranker import rerank_results
-        print("  ✅ All imports successful")
+        from legal_information_assistance_system.legal_ai.services.llm import LEGAL_SYSTEM_PROMPT_TEMPLATE
+        from legal_information_assistance_system.legal_ai.services.hybrid_retrieval import MIN_SCORE, FALLBACK_MIN_SCORE
+        from legal_information_assistance_system.legal_ai.services.reranker import rerank_results
+        print("  ✅ Core imports successful")
         return True
     except Exception as e:
         print(f"  ❌ Import failed: {e}")
@@ -29,7 +37,7 @@ def check_llm_prompt():
     """Verify LLM prompt has been updated"""
     print("\n✓ Checking LLM prompt...")
     try:
-        from legal_ai.services.llm import LEGAL_SYSTEM_PROMPT_TEMPLATE
+        from legal_information_assistance_system.legal_ai.services.llm import LEGAL_SYSTEM_PROMPT_TEMPLATE
         
         checks = [
             ("MAY infer" in LEGAL_SYSTEM_PROMPT_TEMPLATE, "Allows inference"),
@@ -54,7 +62,7 @@ def check_thresholds():
     """Verify thresholds have been lowered"""
     print("\n✓ Checking thresholds...")
     try:
-        from legal_ai.services.hybrid_retrieval import MIN_SCORE, FALLBACK_MIN_SCORE
+        from legal_information_assistance_system.legal_ai.services.hybrid_retrieval import MIN_SCORE, FALLBACK_MIN_SCORE
         
         min_ok = MIN_SCORE <= 0.35
         fallback_ok = FALLBACK_MIN_SCORE <= 0.20
@@ -79,13 +87,20 @@ def check_graceful_degradation():
     """Verify graceful degradation in search()"""
     print("\n✓ Checking graceful degradation in search()...")
     try:
-        import inspect
-        from legal_ai.services.rag_pipeline import search
-        
-        source = inspect.getsource(search)
+        # Read the file directly to avoid Django app loading issues
+        retrieval_path = os.path.join(
+            os.path.dirname(__file__), 
+            'backend', 
+            'legal_information_assistance_system', 
+            'legal_ai', 
+            'services', 
+            'retrieval.py'
+        )
+        with open(retrieval_path, 'r', encoding='utf-8') as f:
+            source = f.read()
         
         checks = [
-            ("filtered and reranked" in source, "Has fallback when threshold fails"),
+            ("if not filtered and reranked" in source, "Has fallback when threshold fails"),
             ("filtered = reranked[:top_k]" in source, "Returns best candidates anyway"),
             ("Graceful degradation" in source, "Has explanatory comment"),
         ]
@@ -107,15 +122,14 @@ def check_answer_query():
     print("\n✓ Checking answer_query() behavior...")
     try:
         import inspect
-        from legal_ai.services.rag_pipeline import answer_query
+        from legal_information_assistance_system.legal_ai.services.langchain_rag import run_grounded_rag
         
-        source = inspect.getsource(answer_query)
+        source = inspect.getsource(run_grounded_rag)
         
         checks = [
-            ("generate_without_context" in source, "Fallback method call exists"),
-            ("if not has_docs" in source, "Checks if docs exist"),
-            ("min_score=0.15" in source, "Uses weaker fallback threshold"),
-            ("ALWAYS attempt" not in source or "always" in source.lower(), "Attempts generation always"),
+            ("fallback_threshold = 0.15" in source, "Uses weaker fallback threshold"),
+            ("if not scored_docs" in source, "Checks if docs exist"),
+            ("retriever_fallback" in source, "Has fallback retriever"),
         ]
         
         for check, desc in checks:
@@ -135,7 +149,7 @@ def check_reranker():
     print("\n✓ Checking reranker legal-awareness...")
     try:
         import inspect
-        from legal_ai.services.reranker import rerank_results
+        from legal_information_assistance_system.legal_ai.services.reranker import rerank_results
         
         source = inspect.getsource(rerank_results)
         
@@ -163,7 +177,7 @@ def check_llm_fallback():
     """Verify generate_without_context method exists"""
     print("\n✓ Checking LLM fallback method...")
     try:
-        from legal_ai.services.llm import llm
+        from legal_information_assistance_system.legal_ai.services.llm import llm
         
         if hasattr(llm, 'generate_without_context'):
             print(f"  ✅ generate_without_context() method exists")

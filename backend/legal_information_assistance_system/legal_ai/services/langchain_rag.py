@@ -1,5 +1,6 @@
 """LangChain RAG orchestration: retrieval, prompt construction, grounded generation."""
 
+import re
 from typing import Any, Dict, List
 
 from django.conf import settings
@@ -19,18 +20,18 @@ FINAL_TOP_K = getattr(settings, "RAG_FINAL_TOP_K", 5)
 
 GROUNDED_SYSTEM_PROMPT = """You are a Legal Information Assistant for Nepal law.
 
-STRICT RULES:
-1. Answer ONLY using the provided legal context and retrieved sources.
-2. Do NOT invent laws, rights, procedures, penalties, or interpretations not supported by the sources.
-3. If context is insufficient, respond exactly with:
-   "The provided legal sources do not contain sufficient information to answer this question."
-4. Do not rely on general legal knowledge outside the provided context.
-5. If sources are unrelated, say the available legal context is not relevant — do not guess.
-6. Combine multiple relevant sources into one coherent answer.
-7. Respond ONLY in {response_language} (same language as the user's question).
-8. Keep answers factual, neutral, and easy to understand.
-9. Never provide personal legal advice — only legal information.
-10. Format the answer in Markdown:
+GUIDELINES:
+1. Use the provided legal context and retrieved sources as your primary source.
+2. You MAY infer logical conclusions from the provided context.
+3. You MAY draw logical inferences when the context provides a clear legal framework.
+4. NEVER say you cannot find information if relevant context exists — use what is available.
+5. If the context is genuinely insufficient for a specific question, provide the best answer possible based on what IS available, and note any limitations.
+6. Do not rely on general legal knowledge outside the provided context.
+7. Combine multiple relevant sources into one coherent answer.
+8. Respond ONLY in {response_language} (same language as the user's question).
+9. Keep answers factual, neutral, and easy to understand.
+10. Never provide personal legal advice — only legal information.
+11. Format the answer in Markdown:
     - Use ## headings for main sections
     - Use bullet or numbered lists where appropriate
     - Use markdown tables when comparing provisions
@@ -39,6 +40,20 @@ STRICT RULES:
 CITATION FORMAT:
 - Inline: [Source N] after each claim
 - In Sources section: document name, act, chapter/section/article, and link if available
+
+IMPORTANT:
+- Never mix information from different legal documents unless explicitly required by the question.
+- If the question asks about a specific document (e.g., Constitution, Civil Code), prioritize that document.
+- If section/article numbers are mentioned in the question, cite those specific provisions.
+- Do not hallucinate section numbers or legal provisions that are not in the provided context.
+- If the context contains conflicting information, acknowledge the conflict and cite all relevant sources.
+
+ANSWER STRUCTURE:
+- Start with a direct answer: "हो।" (Yes) or "होइन।" (No) for Nepali, "Yes" or "No" for English, followed by the main point
+- Provide comprehensive explanation of the legal provision
+- Include specific section/article numbers when available in the context
+- Explain the requirements, procedures, or conditions mentioned in the law
+- Conclude with a summary of the key points
 """
 
 USER_PROMPT = """--- LEGAL CONTEXT ---
@@ -51,11 +66,29 @@ USER_PROMPT = """--- LEGAL CONTEXT ---
 
 
 def _format_context_from_docs(docs: List[Document]) -> str:
+    """Format retrieved documents with clear source attribution and document separation."""
+    # Deduplicate documents by chunk_id to avoid duplicate sources
+    seen_chunks = set()
+    unique_docs = []
+    for doc in docs:
+        chunk_id = doc.metadata.get("chunk_id")
+        if chunk_id and chunk_id not in seen_chunks:
+            seen_chunks.add(chunk_id)
+            unique_docs.append(doc)
+        elif not chunk_id:
+            # If no chunk_id, include it anyway (fallback)
+            unique_docs.append(doc)
+    
     blocks = []
-    for i, doc in enumerate(docs, 1):
+    for i, doc in enumerate(unique_docs, 1):
         meta = doc.metadata
+        
+        # Clean document name - remove artifacts like IDs
+        doc_name = meta.get("document_name") or meta.get("document_title", "")
+        doc_name = re.sub(r'\s+[a-z0-9]{6,}$', '', doc_name)  # Remove trailing IDs like "zpq6wk7"
+        
         header_parts = [
-            meta.get("document_name") or meta.get("document_title"),
+            doc_name,
             meta.get("act_name"),
             meta.get("part"),
             meta.get("chapter"),
@@ -66,7 +99,17 @@ def _format_context_from_docs(docs: List[Document]) -> str:
         header = " | ".join(str(p) for p in header_parts if p)
         url = meta.get("source_url") or meta.get("url")
         url_line = f"\nURL: {url}" if url else ""
-        blocks.append(f"[Source {i}] {header}{url_line}\n{doc.page_content}")
+        
+        # Add document type and language info for better context
+        doc_type = meta.get("document_type", "")
+        doc_lang = meta.get("language", "")
+        type_lang_info = ""
+        if doc_type:
+            type_lang_info += f" [{doc_type}]"
+        if doc_lang:
+            type_lang_info += f" [{doc_lang.upper()}]"
+        
+        blocks.append(f"[Source {i}] {header}{type_lang_info}{url_line}\n{doc.page_content}")
     return "\n\n".join(blocks)
 
 
@@ -121,6 +164,12 @@ def run_grounded_rag(
     retriever = LegalHybridRetriever(top_k=top_k, min_score=threshold)
     scored_docs = retriever.retrieve_with_scores(query)
 
+    # Fallback: if no docs with current threshold, try with weaker threshold
+    if not scored_docs:
+        fallback_threshold = 0.15  # Very weak threshold for fallback
+        retriever_fallback = LegalHybridRetriever(top_k=top_k, min_score=fallback_threshold)
+        scored_docs = retriever_fallback.retrieve_with_scores(query)
+
     if not scored_docs:
         return {
             "query": query,
@@ -132,7 +181,8 @@ def run_grounded_rag(
         }
 
     best_score = max(score for _, score in scored_docs)
-    if best_score < threshold:
+    # Only skip LLM if even the fallback threshold wasn't met
+    if best_score < 0.15:
         return {
             "query": query,
             "answer": _insufficient_retrieval_message(query_language),

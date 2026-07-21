@@ -9,14 +9,17 @@ from legal_information_assistance_system.legal_ai.services.language import langu
 
 LEGAL_SYSTEM_PROMPT_TEMPLATE = """You are a Legal Information Assistant for Nepal law.
 
-STRICT RULES:
-1. Use ONLY the provided legal context — do not invent laws or interpretations.
-2. If context is insufficient, say: "The provided legal sources do not contain sufficient information to answer this question."
-3. Cite sources inline as [Source N] with document, part, chapter, section/article.
-4. Respond ONLY in {response_language}.
-5. Do not provide personal legal advice — provide legal information only.
-6. Format answers in Markdown: headings (##), bullet/numbered lists, tables when useful.
-7. End with a ## Sources section listing citations and links when available.
+GUIDELINES:
+1. Use the provided legal context as your primary source.
+2. You MAY infer logical conclusions from the provided context.
+3. You MAY draw logical inferences when the context provides a clear legal framework.
+4. NEVER say you cannot find information if relevant context exists — use what is available.
+5. If the context is genuinely insufficient for a specific question, provide the best answer possible based on what IS available, and note any limitations.
+6. Cite sources inline as [Source N] with document, part, chapter, section/article.
+7. Respond ONLY in {response_language}.
+8. Do not provide personal legal advice — provide legal information only.
+9. Format answers in Markdown: headings (##), bullet/numbered lists, tables when useful.
+10. End with a ## Sources section listing citations and links when available.
 """
 
 
@@ -58,11 +61,41 @@ class LegalLLM:
         return self._mock_response()
     
     def generate_without_context(self, query: str) -> str:
-        """Deprecated: grounded RAG should not call this path."""
+        """Fallback method when no context is available - attempts to provide helpful guidance."""
         detected_lang = language_service.detect_language(query)
+        
+        # Build a prompt that asks the LLM to provide general guidance without specific legal citations
         if detected_lang == "ne":
-            return "प्रदान गरिएका कानूनी स्रोतहरूमा यो प्रश्नको लागि पर्याप्त जानकारी छैन।"
-        return "The provided legal sources do not contain sufficient information to answer this question."
+            fallback_prompt = (
+                "तपाईंले नेपालको कानूनको बारेमा सोध्नुभएको प्रश्नमा विशिष्ट कानूनी सन्दर्भ उपलब्ध छैन। "
+                "कृपया यो विषयमा सामान्य जानकारी प्रदान गर्नुहोस् र "
+                "यो जानकारी विशिष्ट कानूनी सल्लाह होइन भनेर स्पष्ट गर्नुहोस्। "
+                "प्रश्न: " + query
+            )
+        else:
+            fallback_prompt = (
+                "No specific legal context is available for your question about Nepal law. "
+                "Please provide general information about this topic and clarify that "
+                "this information is not specific legal advice. "
+                "Question: " + query
+            )
+        
+        # Try to generate a helpful response using the LLM
+        try:
+            if self.provider == "ollama":
+                return self._ollama_call(query, context=None, fallback=True)
+            elif self.provider == "openai":
+                return self._openai_call(fallback_prompt)
+            else:
+                # Final fallback message
+                if detected_lang == "ne":
+                    return "प्रदान गरिएका कानूनी स्रोतहरूमा यो प्रश्नको लागि पर्याप्त जानकारी छैन। कृपया यो विषयसँग सम्बन्धित विशिष्ट कानूनी दस्तावेजहरू खोज्नुहोस्।"
+                return "The provided legal sources do not contain sufficient information to answer this question. Please search for specific legal documents related to this topic."
+        except Exception:
+            # If LLM fails, return standard message
+            if detected_lang == "ne":
+                return "प्रदान गरिएका कानूनी स्रोतहरूमा यो प्रश्नको लागि पर्याप्त जानकारी छैन।"
+            return "The provided legal sources do not contain sufficient information to answer this question."
 
     def build_prompt(self, query: str, context: str) -> str:
         # Detect query language

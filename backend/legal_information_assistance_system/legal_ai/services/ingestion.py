@@ -10,7 +10,7 @@ from legal_information_assistance_system.legal_ai.services.pdf_loader import ext
 from legal_information_assistance_system.legal_ai.services.retrieval import rebuild_faiss_index
 from legal_information_assistance_system.legal_ai.services.text_cleaning import clean_text
 
-_chunker = LegalChunker()
+_chunker = LegalChunker(max_words=300, overlap=50)
 LEGAL_DOCS_DIR = Path(settings.MEDIA_ROOT) / "legal_docs"
 
 
