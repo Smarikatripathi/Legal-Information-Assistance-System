@@ -7,23 +7,9 @@ const Button = ({
   ...props
 }) => {
   const variants = {
-    primary:
-      "bg-blue-800 text-white hover:bg-blue-900",
-
-    secondary:
-      "bg-slate-100 text-slate-800 hover:bg-slate-200",
-
+    primary: "bg-blue-800 text-white hover:bg-blue-900",
     gradient:
       "bg-gradient-to-r from-red-700 via-red-600 to-blue-800 text-white hover:scale-[1.02] shadow-lg",
-
-    outline:
-      "border border-slate-300 text-slate-700 hover:bg-slate-50",
-
-    danger:
-      "bg-red-700 text-white hover:bg-red-800",
-
-    ghost:
-      "text-slate-600 hover:bg-slate-100",
   };
 
   const sizes = {

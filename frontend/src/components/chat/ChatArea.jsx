@@ -5,7 +5,7 @@ import { Scale, FileText, Home, ShieldCheck } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
 
 import ChatInput from "./ChatInput";
-import { sendMessage } from "../services/chatService";
+import { sendMessage } from "../../services/chatService";
 import MessageBubble from "./MessageBubble";
 
 const EMPTY_MESSAGES = [];
