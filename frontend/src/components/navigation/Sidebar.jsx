@@ -7,7 +7,7 @@ import {
   LogOut,
 } from "lucide-react";
 
-import Button from "./Button";
+import Button from "../ui/Button";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 

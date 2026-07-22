@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import DashboardLayout from "../layout/DashboardLayout";
+import DashboardLayout from "../layouts/DashboardLayout";
 
 const Dashboard = () => {
   const [messages, setMessages] = useState([]);

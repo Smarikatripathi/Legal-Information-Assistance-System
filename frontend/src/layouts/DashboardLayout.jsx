@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Menu } from "lucide-react";
 import { Outlet } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
+import Sidebar from "../components/navigation/Sidebar";
 
 const DashboardLayout = ({
   messages,
