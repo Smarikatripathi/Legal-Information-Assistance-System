@@ -20,8 +20,8 @@ const Navbar = () => {
   const navItems = [
     { label: "Home", href: "#home" },
     { label: "Features", href: "#features" },
-    { label: "How It Helps", href: "#how-it-helps" },
-    { label: "Contact", href: "#contact" },
+    { label: "How It Works", href: "#how-it-works" },
+ 
   ];
 
   return (
@@ -74,8 +74,8 @@ const Navbar = () => {
         {/* Desktop Buttons */}
         <div className="hidden items-center gap-3 lg:flex">
           <Link
-  to="/login"
-  className="
+            to="/login"
+            className="
     rounded-xl
     bg-[#084FF4]
     px-5
@@ -89,9 +89,9 @@ const Navbar = () => {
     hover:shadow-[#084FF4]/30
     active:scale-95
   "
->
-  Login
-</Link>git push --set-upstream origin backend_requirement
+          >
+            Login
+          </Link>
 
           <Link
             to="/signup"
