@@ -12,7 +12,7 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 APPS_DIR = BASE_DIR / "legal_information_assistance_system"
 env = environ.Env()
 
-READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=False)
+READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=True)
 if READ_DOT_ENV_FILE:
     # OS environment variables take precedence over variables from .env
     env.read_env(str(BASE_DIR / ".env"))
@@ -277,7 +277,7 @@ SITE_NAME = "Legal Information Assistance System"
 # Base URL for links in password-reset emails (Django reset page or your SPA).
 PASSWORD_RESET_BASE_URL = config(
     "PASSWORD_RESET_BASE_URL",
-    default=config("FRONTEND_PASSWORD_RESET_URL", default="http://127.0.0.1:8000"),
+    default="http://localhost:5173/reset-password",
 )
 # Backward-compatible alias
 FRONTEND_PASSWORD_RESET_URL = PASSWORD_RESET_BASE_URL
