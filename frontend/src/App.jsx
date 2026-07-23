@@ -6,7 +6,8 @@ import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Lawyers from "./pages/Lawyers";
 import Profile from "./pages/Profile";
-
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import ChatArea from "./components/chat/ChatArea";
 
@@ -18,6 +19,8 @@ const App = () => {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
 
         {/* Protected Routes */}
         <Route
