@@ -2,6 +2,7 @@ from typing import Any, Dict, List
 
 from legal_information_assistance_system.legal_ai.services.hybrid_retrieval import tokenize
 from legal_information_assistance_system.legal_ai.services.language import language_service
+from legal_information_assistance_system.legal_ai.services.legal_concepts import is_arrest_related
 
 
 def extract_legal_concepts(text: str) -> List[str]:
@@ -46,12 +47,13 @@ def has_section_number_match(query: str, hit: Dict[str, Any]) -> bool:
 def rerank_results(query: str, candidates: List[Dict[str, Any]], top_k: int = 5) -> List[Dict[str, Any]]:
     """
     Enhanced reranking with:
-    - Lexical density
-    - Metadata relevance
-    - Legal section specificity
-    - Query-title alignment
-    - Language match boost
+    - Lexical density (token overlap)
+    - Title boost (metadata title matching)
+    - Section/article match (exact number matching)
+    - Language match (bilingual support)
     - Legal concept matching
+    - Length optimization
+    - Relevance filtering for arrest queries
     """
     if not candidates:
         return []
@@ -60,13 +62,18 @@ def rerank_results(query: str, candidates: List[Dict[str, Any]], top_k: int = 5)
     query_lower = query.lower()
     query_lang = language_service.detect_language(query)
     
-    # Extract legal concepts from query
-    query_concepts = set(extract_legal_concepts(query))
+    # Extract legal concepts from query for concept matching
+    query_concepts = extract_legal_concepts(query)
+    
+    # Check if this is an arrest-related query
+    is_arrest_query = is_arrest_related(query)
 
     for hit in candidates:
         text = hit.get("text", "")
         text_tokens = set(tokenize(text))
         text_lang = hit.get("language", "en")
+        metadata = hit.get("metadata", {})
+        text_lower = text.lower()
         
         # Lexical density: how many query tokens appear in text
         density = len(query_tokens & text_tokens) / max(len(query_tokens), 1)
@@ -74,55 +81,100 @@ def rerank_results(query: str, candidates: List[Dict[str, Any]], top_k: int = 5)
         # Prefer focused chunks (not too long, not too short)
         word_count = len(text.split())
         length_penalty = 0.0
-        if word_count > 700:  # Very long chunks get slight penalty
-            length_penalty = 0.03
-        elif word_count < 20:  # Very short chunks less useful
+        if word_count > 700:
             length_penalty = 0.05
-        elif 50 <= word_count <= 400:  # Ideal range
-            length_penalty = 0.0
+        elif word_count < 30:
+            length_penalty = 0.08
+        elif 60 <= word_count <= 450:
+            length_penalty = 0.0  # Optimal length range
 
-        # Boost if title/section contains query terms
+        # Boost if title contains query terms
         title = (hit.get("title") or "").lower()
         title_boost = 0.0
         if title and any(t in title for t in query_tokens):
-            title_boost = 0.15
+            title_boost = 0.20
         
-        # Language match boost - significant for bilingual retrieval
+        # Language match boost (stronger for bilingual system)
         language_boost = 0.0
         if query_lang == text_lang:
-            language_boost = 0.15
+            language_boost = 0.20
         
-        # Article/section number match is VERY relevant for legal queries
+        # Section/article number match (strong signal for legal queries)
         article_boost = 0.0
         if has_section_number_match(query, hit):
-            article_boost = 0.25  # Increased boost for precise section matches
+            article_boost = 0.30
         
-        # Legal concept matching
-        chunk_concepts = set(extract_legal_concepts(text))
-        concept_overlap = len(query_concepts & chunk_concepts)
-        concept_boost = concept_overlap * 0.05
-        
-        # Document type alignment (constitution for constitutional questions, etc)
-        doc_type = (hit.get("document_type") or "").lower()
-        doc_name = (hit.get("document_name") or hit.get("document_title") or "").lower()
-        doc_boost = 0.0
-        if ("constitution" in query_lower or "sanvidhan" in query_lower) and ("constitution" in doc_name or "sanvidhan" in doc_name):
-            doc_boost = 0.1
-        elif ("civil" in query_lower or "marriage" in query_lower or "property" in query_lower) and ("civil" in doc_name):
-            doc_boost = 0.08
-        elif ("criminal" in query_lower or "crime" in query_lower or "offence" in query_lower) and ("criminal" in doc_name):
-            doc_boost = 0.08
+        # Legal concept matching boost
+        concept_boost = 0.0
+        for concept in query_concepts:
+            if concept in text_lower:
+                concept_boost += 0.10
+        concept_boost = min(concept_boost, 0.25)  # Cap at 0.25
+
+        # Relevance filtering for arrest queries
+        relevance_penalty = 0.0
+        if is_arrest_query:
+            # Extra boost for database fallback results
+            if hit.get("db_boost", False):
+                concept_boost += 0.50
+            
+            # Penalize chunks that mention detention/imprisonment but not arrest
+            detention_keywords = ["detention", "detain", "imprisonment", "imprison", "custody"]
+            arrest_keywords = ["arrest", "apprehension", "warrant", "पक्राउ", "गिरफ्तार"]
+            rights_keywords = ["rights", "justice", "अधिकार", "न्याय"]
+            
+            has_detention = any(kw in text_lower for kw in detention_keywords)
+            has_arrest = any(kw in text_lower for kw in arrest_keywords)
+            has_rights = any(kw in text_lower for kw in rights_keywords)
+            
+            # If chunk mentions detention but not arrest, penalize heavily
+            if has_detention and not has_arrest:
+                relevance_penalty = 0.60  # Increased penalty
+            
+            # Penalize chunks about parliamentary privileges
+            if "privilege" in text_lower or "parliament" in text_lower or "assembly" in text_lower:
+                if has_arrest:
+                    relevance_penalty += 0.70  # Heavy penalty for parliamentary arrest immunity
+            
+            # Penalize chunks about court jurisdiction
+            if "jurisdiction" in text_lower or "supreme court" in text_lower or "high court" in text_lower:
+                if not has_rights:
+                    relevance_penalty += 0.60
+            
+            # Boost chunks that specifically mention arrest/warrant
+            if has_arrest:
+                concept_boost += 0.25  # Increased boost
+            
+            # Extra boost for chunks with both arrest and rights/justice
+            if has_arrest and has_rights:
+                concept_boost += 0.30  # Increased boost for rights + arrest
+            
+            # Penalize chunks about arms/weapons for arrest queries
+            if "arms" in text_lower or "weapon" in text_lower or "license" in text_lower:
+                if not has_arrest:
+                    relevance_penalty += 0.50
+            
+            # Penalize chunks about goods/commercial law
+            if "goods" in text_lower or "bailor" in text_lower or "bailee" in text_lower or "contract" in text_lower:
+                if not has_arrest:
+                    relevance_penalty += 0.70
+            
+            # Penalize "warrant" when used in commercial context (warranty)
+            if "warrant" in text_lower:
+                commercial_context = ["goods", "bailor", "bailee", "quality", "separate provision", "fault"]
+                if any(ctx in text_lower for ctx in commercial_context):
+                    relevance_penalty += 0.80
 
         # Combined rerank score
         hit["rerank_score"] = (
             hit.get("score", 0) + 
-            density * 0.15 + 
+            density * 0.20 +  # Increased weight for lexical density
             title_boost + 
             language_boost +
             article_boost +
-            concept_boost +
-            doc_boost -
-            length_penalty
+            concept_boost -
+            length_penalty -
+            relevance_penalty
         )
 
     ranked = sorted(candidates, key=lambda x: x.get("rerank_score", x.get("score", 0)), reverse=True)

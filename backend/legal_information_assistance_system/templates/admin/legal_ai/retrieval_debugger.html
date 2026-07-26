@@ -1,45 +1,24 @@
-{% extends "admin/base_site.html" %}
-
+{% extends "admin/custom_base.html" %}
 {% block content %}
-<div class="container-fluid">
-  <h1>Retrieval Debugger</h1>
-  <p class="text-muted">Test semantic + hybrid retrieval against the FAISS index.</p>
-
-  <div class="card mb-4">
-    <div class="card-body">
-      <p><strong>FAISS Status:</strong> {{ faiss_info.status }} |
-         <strong>Vectors:</strong> {{ faiss_info.total_vectors|default:0 }} |
-         <strong>Dimension:</strong> {{ faiss_info.dimension|default:"—" }}</p>
-    </div>
-  </div>
-
-  <form method="post">
+<div class="legal-dashboard-shell">
+  <h1 class="mb-3">Retrieval Debugger</h1>
+  <form method="post" class="mb-4">
     {% csrf_token %}
-    <div class="form-group mb-3">
-      <label for="query">Test Query</label>
-      <textarea name="query" id="query" class="form-control" rows="3" placeholder="e.g. What are the conditions of marriage under Section 70?">{{ query }}</textarea>
-    </div>
-    <button type="submit" class="btn btn-primary">Search</button>
+    <textarea name="query" class="form-control mb-2" rows="3" placeholder="Type a legal query...">{{ query }}</textarea>
+    <button class="btn btn-primary"><i class="fa-solid fa-magnifying-glass me-1"></i>Search</button>
   </form>
-
   {% if results %}
-  <hr />
-  <h2>Top Retrieved Chunks ({{ results|length }})</h2>
-  {% for hit in results %}
-  <div class="card mb-3">
-    <div class="card-header">
-      <strong>Score:</strong> {{ hit.score|floatformat:4 }}
-      &nbsp;|&nbsp; <strong>Document:</strong> {{ hit.document_name }}
-      {% if hit.section %}&nbsp;|&nbsp; Section {{ hit.section }}{% endif %}
-      {% if hit.article %}&nbsp;|&nbsp; Article {{ hit.article }}{% endif %}
-      {% if hit.part %}&nbsp;|&nbsp; {{ hit.part }}{% endif %}
+  <div class="stack gap-3">
+    {% for hit in results %}
+    <div class="card p-3">
+      <div class="d-flex justify-content-between">
+        <strong>{{ hit.document_name }}</strong>
+        <span class="badge bg-info">Score {{ hit.score|floatformat:4 }}</span>
+      </div>
+      <div class="text-muted">{{ hit.text|truncatechars:500 }}</div>
     </div>
-    <div class="card-body">
-      {% if hit.title %}<p><em>{{ hit.title }}</em></p>{% endif %}
-      <pre style="white-space: pre-wrap; font-size: 0.85rem;">{{ hit.text|truncatechars:800 }}</pre>
-    </div>
+    {% endfor %}
   </div>
-  {% endfor %}
   {% endif %}
 </div>
 {% endblock %}

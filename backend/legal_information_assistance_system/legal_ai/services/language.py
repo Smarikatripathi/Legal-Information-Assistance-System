@@ -39,6 +39,7 @@ class LanguageService:
     def detect_language(self, text: str) -> str:
         """
         Detect language of user query with improved accuracy for mixed content.
+        Returns: 'en' (English), 'ne' (Nepali), or 'ne_roman' (Roman Nepali)
         Prioritizes Nepali when Devanagari characters are present.
         """
         if not text or not text.strip():
@@ -51,6 +52,15 @@ class LanguageService:
         # If more than 15% of characters are Devanagari, classify as Nepali
         if total_chars > 0 and devanagari_chars / total_chars > 0.15:
             return "ne"
+
+        # Check for Roman Nepali patterns (Nepali words written in Latin script)
+        roman_nepali_indicators = ['ko', 'ka', 'ke', 'ki', 'le', 'la', 'bata', 'dai', 'didi', 'cha', 'cha', 'ho', 'ho', 'ho', 'ho']
+        text_lower = text.lower()
+        roman_nepali_count = sum(1 for word in roman_nepali_indicators if word in text_lower.split())
+        
+        # If multiple Roman Nepali indicators found, classify as Roman Nepali
+        if roman_nepali_count >= 2:
+            return "ne_roman"
 
         try:
             detected = detect(text)

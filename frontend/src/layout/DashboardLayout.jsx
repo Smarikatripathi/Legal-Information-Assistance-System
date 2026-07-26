@@ -8,6 +8,9 @@ const DashboardLayout = ({
   setMessages,
   conversationId,
   setConversationId,
+  currentConversationId,
+  refreshConversations,
+  setRefreshConversations,
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -46,6 +49,8 @@ const DashboardLayout = ({
           setMessages={setMessages}
           conversationId={conversationId}
           setConversationId={setConversationId}
+          currentConversationId={currentConversationId}
+          refreshConversations={refreshConversations}
         />
 
         <main className="flex-1 min-w-0 h-full overflow-hidden">
@@ -55,6 +60,9 @@ const DashboardLayout = ({
               setMessages,
               conversationId,
               setConversationId,
+              currentConversationId,
+              refreshConversations,
+              setRefreshConversations,
             }}
           />
         </main>

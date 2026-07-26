@@ -1,0 +1,69 @@
+:root {
+  --legal-primary: #1f4b99;
+  --legal-secondary: #0ea5e9;
+  --legal-danger: #b91c1c;
+  --legal-bg: #f5f7fb;
+  --legal-card: #ffffff;
+  --legal-text: #122033;
+}
+
+body { background: var(--legal-bg); color: var(--legal-text); }
+.dashboard #content-main,
+.dashboard #content-main * {
+  font-size: 0.95rem;
+}
+.legal-dashboard-shell { padding: 1.25rem; }
+.legal-dashboard-hero, .legal-kpi-card, .card { background: var(--legal-card); border-radius: 16px; box-shadow: 0 8px 24px rgba(17, 24, 39, 0.06); }
+.legal-dashboard-hero { padding: 1.5rem; margin-bottom: 1rem; border-left: 4px solid var(--legal-primary); }
+.dashboard #content-main .module h2,
+.dashboard #content-main .module caption,
+.dashboard #content-main .module .section h2,
+.dashboard #content-main .module .section-title {
+  font-size: 1rem;
+  line-height: 1.3;
+  font-weight: 600;
+}
+.dashboard #content-main .module th,
+.dashboard #content-main .module td,
+.dashboard #content-main .module li,
+.dashboard #content-main .module a,
+.dashboard #content-main .module p {
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+.dashboard #content-main .module .actionlist a,
+.dashboard #content-main .module .object-tools a {
+  font-size: 0.84rem;
+}
+.eyebrow { text-transform: uppercase; letter-spacing: .08em; font-size: .75rem; color: var(--legal-secondary); margin-bottom: .25rem; }
+.legal-kpi-card { padding: 1rem; min-height: 110px; }
+.legal-kpi-card .label { color: #64748b; font-size: .875rem; }
+.legal-kpi-card .value { font-size: 2rem; font-weight: 700; }
+.table thead th { background: #eef3fb; }
+.change-list #changelist table thead th,
+.change-list #changelist table thead th a,
+.change-list #changelist table thead th .text {
+  color: var(--legal-primary) !important;
+  font-weight: 600;
+}
+.change-list #changelist table thead th a:hover {
+  color: var(--legal-secondary) !important;
+}
+.main-footer .float-right,
+.main-footer .float-end,
+.main-footer small,
+.main-footer .version,
+.main-footer .jazzmin-version {
+  display: none !important;
+}
+.main-footer {
+  font-size: 0;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+.main-footer > * {
+  font-size: 0.875rem;
+}
+.btn { border-radius: 999px; }
+.pdf-preview-frame { height: calc(100vh - 220px); min-height: 600px; border-radius: 16px; overflow: hidden; background: #fff; }
+.pdf-preview-frame iframe { width: 100%; height: 100%; border: 0; }

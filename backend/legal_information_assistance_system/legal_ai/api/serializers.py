@@ -1,6 +1,13 @@
 from rest_framework import serializers
 
-from legal_information_assistance_system.legal_ai.models import Conversation, LegalDocument, Message, QueryHistory
+from legal_information_assistance_system.legal_ai.models import (
+    Conversation,
+    LegalDocument,
+    LegalChunk,
+    Message,
+    QueryHistory,
+    SourceReference,
+)
 
 
 class LegalDocumentUploadSerializer(serializers.ModelSerializer):
@@ -45,7 +52,7 @@ class ConversationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Conversation
-        fields = ["id", "title", "created_at", "updated_at", "message_count"]
+        fields = ["id", "title", "created_at", "updated_at", "message_count", "is_archived"]
         read_only_fields = ["created_at", "updated_at"]
 
     def get_message_count(self, obj):
@@ -76,3 +83,26 @@ class QueryHistorySerializer(serializers.ModelSerializer):
 
     def get_sources(self, obj):
         return obj.retrieved_chunks
+
+
+class SourceReferenceSerializer(serializers.ModelSerializer):
+    document_title = serializers.SerializerMethodField()
+    document_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SourceReference
+        fields = [
+            "id",
+            "document_title",
+            "document_url",
+            "article",
+            "section",
+            "relevance_score",
+            "source_url",
+        ]
+
+    def get_document_title(self, obj):
+        return obj.document.title if obj.document else None
+
+    def get_document_url(self, obj):
+        return obj.document.source_url if obj.document else None

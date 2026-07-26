@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from legal_information_assistance_system.legal_ai.services.chunking import SmartLegalChunker
+from legal_information_assistance_system.legal_ai.services.chunking_v2 import AdvancedLegalChunker
 from legal_information_assistance_system.legal_ai.services.hybrid_retrieval import (
     extract_legal_numbers,
     hybrid_score,
@@ -69,7 +69,7 @@ class PdfExtractionTests(TestCase):
         self.assertFalse(is_scanned_pdf("nonexistent.pdf", pages))
 
 
-class SmartChunkingTests(TestCase):
+class AdvancedChunkingTests(TestCase):
     def test_detects_section_chunks(self):
         text = (
             "Part 5\nChapter Marriage\n"
@@ -78,18 +78,20 @@ class SmartChunkingTests(TestCase):
             "Section 71 Marriage Registration\n"
             "Every marriage must be registered."
         )
-        chunks = SmartLegalChunker().chunk(text, document_name="National Civil Code")
+        chunker = AdvancedLegalChunker(document_id=1, document_name="National Civil Code", document_type="act")
+        chunks = chunker.chunk(text)
         self.assertGreater(len(chunks), 0)
-        sections = [c.get("section") for c in chunks if c.get("section")]
+        sections = [c.section_number for c in chunks if c.section_number]
         self.assertTrue(any(s for s in sections))
 
     def test_metadata_structure(self):
         text = "Article 11 To be citizens of Nepal\nEvery person who has Nepal domicile..."
-        chunks = SmartLegalChunker().chunk(text, document_name="Constitution")
+        chunker = AdvancedLegalChunker(document_id=1, document_name="Constitution", document_type="constitution")
+        chunks = chunker.chunk(text)
         self.assertTrue(chunks)
-        meta = chunks[0]["metadata"]
-        self.assertIn("document_name", meta)
-        self.assertIn("article", meta)
+        meta = chunks[0]
+        self.assertEqual(meta.document_name, "Constitution")
+        self.assertIsNotNone(meta.article_number)
 
 
 class HybridRetrievalTests(TestCase):

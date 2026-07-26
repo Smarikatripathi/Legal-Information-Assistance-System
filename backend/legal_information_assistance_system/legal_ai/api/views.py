@@ -12,9 +12,17 @@ from legal_information_assistance_system.legal_ai.api.serializers import (
     MessageSerializer,
     QueryHistorySerializer,
     QuerySerializer,
+    SourceReferenceSerializer,
 )
-from legal_information_assistance_system.legal_ai.models import Conversation, LegalDocument, Message, QueryHistory
-from legal_information_assistance_system.legal_ai.services.rag_pipeline import answer_query
+from legal_information_assistance_system.legal_ai.models import (
+    Conversation,
+    LegalDocument,
+    Message,
+    QueryHistory,
+    SourceReference,
+)
+from legal_information_assistance_system.legal_ai.services.rag import answer_query
+from legal_information_assistance_system.legal_ai.services.llm import correct_typos
 from legal_information_assistance_system.legal_ai.tasks import crawl_law_commission, process_document_embeddings
 
 
@@ -52,45 +60,83 @@ class LegalQueryView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        serializer = QuerySerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            serializer = QuerySerializer(data=request.data)
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        query = serializer.validated_data["query"]
-        top_k = serializer.validated_data.get("top_k", 5)
-        conversation_id = serializer.validated_data.get("conversation_id")
+            query = serializer.validated_data["query"]
+            # Correct common typos (e.g., "atq" -> "atm")
+            corrected_query = correct_typos(query)
+            top_k = serializer.validated_data.get("top_k", 5)
+            conversation_id = serializer.validated_data.get("conversation_id")
 
-        conversation = None
-        if conversation_id:
-            conversation = Conversation.objects.filter(
-                id=conversation_id, user=request.user
-            ).first()
+            # Get or create conversation
+            conversation = None
+            if conversation_id:
+                conversation = Conversation.objects.filter(
+                    id=conversation_id, user=request.user
+                ).first()
 
-        if conversation is None:
-            conversation = Conversation.objects.create(
-                user=request.user,
-                title=query[:80],
+            if conversation is None:
+                conversation = Conversation.objects.create(
+                    user=request.user,
+                    title=query[:80],
+                )
+
+            # Save user message
+            Message.objects.create(
+                conversation=conversation,
+                role="user",
+                content=query,
             )
 
-        Message.objects.create(conversation=conversation, role="user", content=query)
+            # Use simplified RAG pipeline
+            response = answer_query(
+                query=corrected_query,
+                top_k=top_k,
+                conversation_id=conversation.id,
+                user_id=request.user.id,
+            )
 
-        response = answer_query(query, top_k=top_k)
+            # Handle out-of-scope queries
+            if response.get("out_of_scope"):
+                Message.objects.create(
+                    conversation=conversation,
+                    role="assistant",
+                    content=response["answer"],
+                )
+                response["conversation_id"] = conversation.id
+                return Response(response)
 
-        Message.objects.create(conversation=conversation, role="assistant", content=response["answer"])
-        conversation.save(update_fields=["updated_at"])
+            # Save assistant response for normal answers
+            Message.objects.create(
+                conversation=conversation,
+                role="assistant",
+                content=response["answer"],
+            )
 
-        QueryHistory.objects.create(
-            user=request.user,
-            conversation=conversation,
-            query=query,
-            answer=response["answer"],
-            retrieved_chunks=response.get("sources", []),
-            confidence_score=response.get("confidence_score", 0),
-            response_time_ms=response.get("response_time_ms", 0),
-        )
+            QueryHistory.objects.create(
+                user=request.user,
+                conversation=conversation,
+                query=query,
+                answer=response["answer"],
+                retrieved_chunks=response.get("sources", []),
+                confidence_score=response.get("confidence_score", 0),
+                response_time_ms=response.get("response_time_ms", 0),
+            )
 
-        response["conversation_id"] = conversation.id
-        return Response(response)
+            response["conversation_id"] = conversation.id
+            return Response(response)
+        
+        except Exception as e:
+            import traceback
+            print(f"Error in LegalQueryView: {e}")
+            print(traceback.format_exc())
+            return Response(
+                {"error": "An error occurred while processing your query. Please try again.", "detail": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class ConversationListCreateView(APIView):
@@ -98,10 +144,11 @@ class ConversationListCreateView(APIView):
 
     def get(self, request):
         search = request.query_params.get("search", "")
-        qs = Conversation.objects.filter(user=request.user)
+        conversations = Conversation.objects.filter(user=request.user)
         if search:
-            qs = qs.filter(Q(title__icontains=search) | Q(messages__content__icontains=search)).distinct()
-        return Response(ConversationSerializer(qs[:50], many=True).data)
+            conversations = conversations.filter(title__icontains=search)
+        conversations = conversations.order_by('-updated_at')[:50]
+        return Response(ConversationSerializer(conversations, many=True).data)
 
     def post(self, request):
         title = request.data.get("title", "New conversation")
@@ -113,19 +160,33 @@ class ConversationDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
-        conv = Conversation.objects.filter(pk=pk, user=request.user).first()
+        conv = Conversation.objects.filter(id=pk, user=request.user).first()
         if not conv:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
-        messages = conv.messages.all()
+        messages = conv.messages.all().order_by('created_at')
         return Response({
             "conversation": ConversationSerializer(conv).data,
             "messages": MessageSerializer(messages, many=True).data,
         })
 
-    def delete(self, request, pk):
-        deleted, _ = Conversation.objects.filter(pk=pk, user=request.user).delete()
-        if not deleted:
+    def patch(self, request, pk):
+        conv = Conversation.objects.filter(id=pk, user=request.user).first()
+        if not conv:
             return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        if 'title' in request.data:
+            conv.title = request.data['title']
+        if 'is_archived' in request.data:
+            conv.is_archived = request.data['is_archived']
+        
+        conv.save()
+        return Response(ConversationSerializer(conv).data)
+
+    def delete(self, request, pk):
+        conv = Conversation.objects.filter(id=pk, user=request.user).first()
+        if not conv:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        conv.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -133,7 +194,7 @@ class QueryHistoryListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        qs = QueryHistory.objects.filter(user=request.user)[:100]
+        qs = QueryHistory.objects.filter(user=request.user).select_related('conversation').prefetch_related('conversation__messages')[:100]
         return Response(QueryHistorySerializer(qs, many=True).data)
 
 

@@ -1,0 +1,27 @@
+{% extends "admin/custom_base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="legal-dashboard-shell">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h1 class="mb-1">{{ document.title }}</h1>
+      <p class="text-muted mb-0">PDF preview</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'admin:legal_ai_legaldocument_change' document.pk %}" class="btn btn-secondary">Back</a>
+      {% if document.file %}
+      <a href="{{ document.file.url }}" class="btn btn-primary" target="_blank" rel="noopener">Open in new tab</a>
+      <a href="{{ document.file.url }}" class="btn btn-success" download>Download</a>
+      {% endif %}
+    </div>
+  </div>
+  {% if document.file %}
+  <div class="pdf-preview-frame">
+    <iframe src="{{ document.file.url }}" title="PDF preview"></iframe>
+  </div>
+  {% else %}
+  <div class="alert alert-warning">PDF file is not available for this document.</div>
+  {% endif %}
+</div>
+{% endblock %}

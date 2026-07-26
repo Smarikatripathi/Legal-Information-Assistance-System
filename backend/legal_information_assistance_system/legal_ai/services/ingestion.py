@@ -5,12 +5,10 @@ from django.conf import settings
 from django.db import transaction
 
 from legal_information_assistance_system.legal_ai.models import LegalChunk, LegalDocument
-from legal_information_assistance_system.legal_ai.services.chunking import LegalChunker
+from legal_information_assistance_system.legal_ai.services.chunking_v2 import AdvancedLegalChunker
 from legal_information_assistance_system.legal_ai.services.pdf_loader import extract_pdf_text
 from legal_information_assistance_system.legal_ai.services.retrieval import rebuild_faiss_index
 from legal_information_assistance_system.legal_ai.services.text_cleaning import clean_text
-
-_chunker = LegalChunker(max_words=300, overlap=50)
 LEGAL_DOCS_DIR = Path(settings.MEDIA_ROOT) / "legal_docs"
 
 
@@ -107,8 +105,15 @@ def process_document(document_id: int, *, rebuild_faiss: bool = False) -> Dict[s
         document.save(update_fields=["cleaned_text", "processing_status"])
         _update_pipeline_step(document, "text_cleaned")
 
-        chunks_data = _chunker.chunk(cleaned, document_name=document.title)
-        if not chunks_data:
+        # Use new AdvancedLegalChunker with OCR correction
+        chunker = AdvancedLegalChunker(
+            document_id=document.id,
+            document_name=document.title,
+            document_type=document.document_type,
+        )
+        chunk_metadata_list = chunker.chunk(cleaned)
+        
+        if not chunk_metadata_list:
             raise ValueError("No valid legal sections found in PDF.")
 
         document.processing_status = "embedding"
@@ -119,25 +124,65 @@ def process_document(document_id: int, *, rebuild_faiss: bool = False) -> Dict[s
             LegalChunk.objects.bulk_create([
                 LegalChunk(
                     doc=document,
-                    text=data["text"],
-                    title=data.get("title", ""),
-                    part=data.get("part", ""),
-                    chapter=data.get("chapter", ""),
-                    section=data.get("section", ""),
-                    article=data.get("article", ""),
-                    clause=data.get("clause", ""),
-                    dhara=data.get("dhara", ""),
-                    metadata=data.get("metadata", {}),
-                    chunk_index=data.get("chunk_index", 0),
+                    text=meta.corrected_text or meta.source_text,
+                    title=meta.article_title or "",
+                    # Legacy fields (for backward compatibility)
+                    part=meta.part_number or "",
+                    chapter=meta.chapter_number or "",
+                    section=meta.section_number or "",
+                    article=meta.article_number or "",
+                    clause=meta.clause_number or "",
+                    dhara=meta.section_number or meta.article_number or "",
+                    # New advanced metadata fields
+                    chunk_id=meta.chunk_id,
+                    document_type=meta.document_type,
+                    jurisdiction=meta.jurisdiction,
+                    language=meta.language,
+                    part_number=meta.part_number or "",
+                    part_title=meta.part_title,
+                    chapter_number=meta.chapter_number or "",
+                    chapter_title=meta.chapter_title,
+                    section_number=meta.section_number or "",
+                    section_title=meta.section_title,
+                    article_number=meta.article_number or "",
+                    article_title=meta.article_title,
+                    subclause_number=meta.subclause_number,
+                    paragraph_number=meta.paragraph_number,
+                    schedule_number=meta.schedule_number,
+                    schedule_title=meta.schedule_title,
+                    annex_number=meta.annex_number,
+                    annex_title=meta.annex_title,
+                    chunk_type=meta.chunk_type,
+                    parent_chunk_id=meta.parent_chunk_id,
+                    hierarchy_path=meta.hierarchy_path,
+                    source_page_start=meta.source_page_start,
+                    source_page_end=meta.source_page_end,
+                    pdf_page_number=meta.pdf_page_number,
+                    corrected_text=meta.corrected_text,
+                    contextualized_text=meta.contextualized_text,
+                    ocr_status=meta.ocr_status,
+                    content_hash=meta.content_hash,
+                    citation_label=meta.citation_label,
+                    ocr_corrections=[
+                        {
+                            "original": c.original,
+                            "corrected": c.corrected,
+                            "confidence": c.confidence,
+                            "rule_id": c.rule_id,
+                        }
+                        for c in meta.ocr_corrections
+                    ],
+                    metadata={},  # Empty since we now use structured fields
+                    chunk_index=i,
                 )
-                for data in chunks_data
+                for i, meta in enumerate(chunk_metadata_list)
             ])
 
         _update_pipeline_step(document, "chunks_created")
         _update_pipeline_step(document, "metadata_generated")
         _update_pipeline_step(document, "embeddings_generated")
 
-        chunk_count = len(chunks_data)
+        chunk_count = len(chunk_metadata_list)
         document.chunk_count = chunk_count
         document.processing_status = "completed"
         document.save(update_fields=["chunk_count", "processing_status"])

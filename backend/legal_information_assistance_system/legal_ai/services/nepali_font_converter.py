@@ -85,12 +85,19 @@ def is_legacy_font(text: str) -> bool:
 
     Detection strategy:
     1. Reject empty or already-Unicode text.
-    2. Look for legacy structural markers (brackets, high-byte chars).
-    3. Confirm by trial conversion — the best font mapping must yield Unicode Nepali.
+    2. Reject text that is primarily English (ASCII letters).
+    3. Look for legacy structural markers (brackets, high-byte chars).
+    4. Confirm by trial conversion — the best font mapping must yield Unicode Nepali.
     """
     if not text or not text.strip() or len(text.strip()) < MIN_TEXT_LENGTH:
         return False
     if is_unicode_text(text):
+        return False
+
+    # Reject text that is primarily English ASCII
+    ascii_letters = sum(1 for ch in text if ch.isalpha() and ord(ch) < 128)
+    total_chars = sum(1 for ch in text if not ch.isspace())
+    if total_chars > 0 and ascii_letters / total_chars > 0.7:
         return False
 
     # Pure English legal PDFs have low legacy markers and fail conversion scoring.

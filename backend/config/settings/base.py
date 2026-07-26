@@ -407,66 +407,106 @@ SPECTACULAR_SETTINGS = {
 # Your stuff...
 # ------------------------------------------------------------------------------
 JAZZMIN_SETTINGS = {
-    "site_title": "Legal AI Admin",
-    "site_header": "Legal Information System",
-    "site_brand": "LegalAI",
-
-    "welcome_sign": "Welcome to Legal AI Admin Panel",
-
-    "copyright": "Legal AI System",
-
+    "site_title": "Legal Information Admin",
+    "site_header": "Legal Information Assistance System",
+    "site_brand": "Legal Assist",
+    "site_logo": "admin/img/legal-assist-logo.svg",
+    "login_logo": "admin/img/legal-assist-logo.svg",
+    "site_icon": "admin/img/legal-assist-logo.svg",
+    "site_logo_classes": "rounded-3 shadow-sm",
+    "welcome_sign": "Welcome to the Legal Information Assistance System admin",
+    "copyright": "",
     "search_model": "auth.User",
-
-    "custom_links": {
-        "legal_ai": [
-            {
-                "name": "Ingestion Dashboard",
-                "url": "/admin/legal-ai/ingestion/",
-                "icon": "fas fa-stream",
-                "permissions": ["legal_ai.view_legaldocument"],
-            },
-            {
-                "name": "RAG Analytics",
-                "url": "/admin/legal-ai/analytics/",
-                "icon": "fas fa-chart-bar",
-                "permissions": ["legal_ai.view_legaldocument"],
-            },
-            {
-                "name": "Retrieval Debugger",
-                "url": "/admin/legal-ai/retrieval-debugger/",
-                "icon": "fas fa-search",
-                "permissions": ["legal_ai.view_legaldocument"],
-            },
-        ]
-    },
-
-    "topmenu_links": [
-        {
-            "name": "Home",
-            "url": "admin:index",
-            "permissions": ["auth.view_user"]
-        },
-    ],
-
     "show_sidebar": True,
     "navigation_expanded": True,
     "show_ui_builder": False,
+    "language_selector": True,
+    "hide_apps": [],
+    "hide_models": [],
+    "theme": "light",
+    "dark_mode_theme": "darkly",
+    "icon_provider": "fontawesome",
+    "default_icon_parents": "fas fa-folder-open",
+    "default_icon_children": "fas fa-circle-dot",
+    "icons": {
+        "auth": "fas fa-user-shield",
+        "auth.user": "fas fa-users",
+        "auth.group": "fas fa-user-group",
+        "account": "fas fa-envelope",
+        "account.emailaddress": "fas fa-at",
+        "authtoken": "fas fa-key",
+        "authtoken.tokenproxy": "fas fa-key",
+        "token_blacklist": "fas fa-shield-halved",
+        "token_blacklist.outstandingtoken": "fas fa-lock",
+        "token_blacklist.blacklistedtoken": "fas fa-ban",
+        "sites": "fas fa-globe",
+        "django_celery_beat": "fas fa-clock",
+        "django_celery_beat.clocked": "fas fa-alarm-clock",
+        "django_celery_beat.crontab": "fas fa-calendar-days",
+        "django_celery_beat.intervalschedule": "fas fa-hourglass-half",
+        "django_celery_beat.periodictask": "fas fa-calendar-check",
+        "django_celery_beat.solarschedule": "fas fa-sun",
+        "users.user": "fas fa-user",
+        "users.lawyerprofile": "fas fa-gavel",
+        "socialaccount": "fas fa-user-astronaut",
+        "socialaccount.socialaccount": "fas fa-user-plus",
+        "socialaccount.socialapp": "fas fa-share-nodes",
+        "socialaccount.socialapptoken": "fas fa-key",
+        "admin_notification": "fas fa-bell",
+        "legal_ai.legaldocument": "fas fa-file-contract",
+        "legal_ai.legalchunk": "fas fa-layer-group",
+        "legal_ai.knowledgegap": "fas fa-circle-question",
+        "legal_ai.clarificationrequest": "fas fa-circle-info",
+        "legal_ai.conversation": "fas fa-comments",
+        "legal_ai.message": "fas fa-message",
+        "legal_ai.embeddingconfig": "fas fa-vector-square",
+        "legal_ai.queryhistory": "fas fa-clock-rotate-left",
+        "legal_ai.adminnotification": "fas fa-bell",
+    },
+    "custom_css": "admin/css/custom_admin.css",
+    "custom_js": "admin/js/custom_admin.js",
+    "custom_templates": {
+        "base": "admin/custom_base.html",
+        "index": "admin/custom_index.html",
+    },
+    "topmenu_links": [
+        {"name": "Dashboard", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "Documents", "url": "admin:legal_ai_legaldocument_changelist", "permissions": ["legal_ai.view_legaldocument"]},
+        {"name": "Analytics", "url": "/admin/legal-ai/analytics/", "permissions": ["legal_ai.view_legaldocument"]},
+    ],
+    "custom_links": {
+        "legal_ai": [
+            {"name": "Ingestion Dashboard", "url": "/admin/legal-ai/ingestion/", "icon": "fas fa-gears", "permissions": ["legal_ai.view_legaldocument"]},
+            {"name": "RAG Analytics", "url": "/admin/legal-ai/analytics/", "icon": "fas fa-chart-line", "permissions": ["legal_ai.view_legaldocument"]},
+            {"name": "Retrieval Debugger", "url": "/admin/legal-ai/retrieval-debugger/", "icon": "fas fa-magnifying-glass-chart", "permissions": ["legal_ai.view_legaldocument"]},
+        ]
+    },
+    "statusbar": [
+        {
+            "text": "System Status",
+            "url": "/admin/legal-ai/analytics/",
+            "icon": "fas fa-heartbeat",
+        },
+    ],
 }
-
 # RAG / Legal AI
 # ------------------------------------------------------------------------------
 RAG_EMBEDDING_MODEL = "intfloat/multilingual-e5-base"
-RAG_MIN_SCORE = 0.35
-RAG_DENSE_WEIGHT = 0.7
-RAG_KEYWORD_WEIGHT = 0.3
-RAG_RETRIEVAL_CANDIDATES = 15
-RAG_FINAL_TOP_K = 5
-RAG_CHUNK_SIZE = 1000
-RAG_CHUNK_OVERLAP = 150
+RAG_MIN_SCORE = 0.25  # Lowered from 0.40 to allow more relevant chunks
+RAG_DENSE_WEIGHT = 0.75  # Increased from 0.70 to rely more on semantic similarity
+RAG_KEYWORD_WEIGHT = 0.25  # Decreased from 0.30
+RAG_RETRIEVAL_CANDIDATES = 20  # Increased from 15 to get more candidates
+RAG_FINAL_TOP_K = 10  # Increased from 5 to provide more context
+RAG_CHUNK_SIZE = 400  # Increased from 300 for better context preservation
+RAG_CHUNK_OVERLAP = 75  # Increased from 50 for better continuity
 RAG_DOMAIN_CLASSIFIER_ENABLED = True
 RAG_LAW_COMMISSION_BASE_URL = "https://lawcommission.gov.np/"
 SCRAPER_VERIFY_SSL = False  # repository.lawcommission.gov.np has expired TLS cert
 FAISS_INDEX_DIR = BASE_DIR / "faiss_store"
+
+# Knowledge gap settings
+RAG_KNOWLEDGE_GAP_THRESHOLD = 0.25  # Lowered from 0.35 to reduce false gap detection
+RAG_FALLBACK_MIN_SCORE = 0.15  # Lowered from 0.25
 
 # LLM (Ollama) — use CPU when GPU CUDA kernels fail on Windows
 LEGAL_LLM_PROVIDER = env("LEGAL_LLM_PROVIDER", default="ollama")

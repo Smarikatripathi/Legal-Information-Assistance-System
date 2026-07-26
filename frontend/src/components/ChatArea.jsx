@@ -5,7 +5,7 @@ import { Scale, FileText, Home, ShieldCheck } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
 
 import ChatInput from "./ChatInput";
-import { sendMessage } from "../services/chatService";
+import { conversationService } from "../services/conversationService";
 import MessageBubble from "./MessageBubble";
 
 const EMPTY_MESSAGES = [];
@@ -13,6 +13,7 @@ const EMPTY_MESSAGES = [];
 const ChatArea = () => {
   const context = useOutletContext();
   const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
   const messages = context?.messages ?? EMPTY_MESSAGES;
 
@@ -35,10 +36,11 @@ const ChatArea = () => {
     setMessages,
     conversationId,
     setConversationId,
+    setRefreshConversations,
   } = context;
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || loading) return;
 
     const userMessage = {
       role: "user",
@@ -49,9 +51,10 @@ const ChatArea = () => {
 
     const currentInput = input;
     setInput("");
+    setLoading(true);
 
     try {
-      const response = await sendMessage(currentInput, conversationId);
+      const response = await conversationService.sendQuery(currentInput, conversationId);
 
       const assistantMessage = {
         role: "assistant",
@@ -63,7 +66,11 @@ const ChatArea = () => {
       if (response.conversation_id) {
         setConversationId(response.conversation_id);
       }
-    } catch {
+
+      // Trigger conversation refresh in sidebar
+      setRefreshConversations((prev) => prev + 1);
+    } catch (error) {
+      console.error("Error sending message:", error);
       setMessages((prev) => [
         ...prev,
         {
@@ -71,6 +78,8 @@ const ChatArea = () => {
           content: "Sorry, something went wrong. Please try again.",
         },
       ]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -138,6 +147,12 @@ const ChatArea = () => {
                 content={msg.content}
               />
             ))}
+            {loading && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
+                <span className="text-sm">Thinking...</span>
+              </div>
+            )}
             <div ref={bottomRef} />
           </div>
         )}
@@ -151,6 +166,7 @@ const ChatArea = () => {
             value={input}
             onChange={setInput}
             onSend={handleSend}
+            disabled={loading}
           />
         </div>
       </div>

@@ -332,14 +332,32 @@ def _classify_and_normalize(pages: List[str]) -> List[str]:
     Inspect extracted pages and convert legacy-font text to Unicode when needed.
 
     Returns pages unchanged for Unicode PDFs, converted for legacy-font PDFs.
+    Handles mixed content by checking each page individually.
     """
     combined = _combined_text(pages)
     if not combined.strip():
         return pages
 
-    if is_unicode_text(combined):
+    # Check each page individually for legacy font content
+    legacy_pages = [i for i, page in enumerate(pages) if page.strip() and is_legacy_font(page)]
+    unicode_pages = [i for i, page in enumerate(pages) if page.strip() and is_unicode_text(page)]
+    
+    # If most pages are legacy font, convert all
+    if len(legacy_pages) > len(unicode_pages):
+        return [convert_legacy_to_unicode(page) for page in pages]
+    
+    # If mixed content, convert only legacy pages
+    if legacy_pages and unicode_pages:
+        return [
+            convert_legacy_to_unicode(page) if i in legacy_pages else page
+            for i, page in enumerate(pages)
+        ]
+    
+    # If all pages are Unicode, no conversion needed
+    if not legacy_pages and unicode_pages:
         return pages
-
+    
+    # If overall text is legacy font, convert all pages
     if is_legacy_font(combined):
         return [convert_legacy_to_unicode(page) for page in pages]
 

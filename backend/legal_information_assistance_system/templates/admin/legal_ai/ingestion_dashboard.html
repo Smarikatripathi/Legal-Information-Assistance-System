@@ -1,55 +1,34 @@
-{% extends "admin/base_site.html" %}
-
+{% extends "admin/custom_base.html" %}
 {% block content %}
-<div class="container-fluid">
-  <h1>Ingestion Pipeline Dashboard</h1>
-  <p class="text-muted">
-    Workflow: <code>scrapy crawl law_commission</code> → PDFs in <code>media/legal_docs/</code>
-    → <code>python manage.py ingest_pdfs</code>
-  </p>
-
-  <div class="row mb-4">
-    <div class="col-md-3"><div class="card"><div class="card-body"><h6>Total Documents</h6><h2>{{ stats.total_documents }}</h2></div></div></div>
-    <div class="col-md-3"><div class="card"><div class="card-body"><h6>PDF Documents</h6><h2>{{ stats.total_pdfs }}</h2></div></div></div>
-    <div class="col-md-3"><div class="card"><div class="card-body"><h6>Total Chunks</h6><h2>{{ stats.total_chunks }}</h2></div></div></div>
-    <div class="col-md-3"><div class="card"><div class="card-body"><h6>FAISS Vectors</h6><h2>{{ stats.total_embeddings }}</h2><small>Status: {{ stats.faiss_status }}</small></div></div></div>
+<div class="legal-dashboard-shell">
+  <h1 class="mb-3">Ingestion Pipeline Dashboard</h1>
+  <div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="legal-kpi-card"><div class="label">Total Documents</div><div class="value">{{ stats.total_documents }}</div></div></div>
+    <div class="col-md-3"><div class="legal-kpi-card"><div class="label">PDF Documents</div><div class="value">{{ stats.total_pdfs }}</div></div></div>
+    <div class="col-md-3"><div class="legal-kpi-card"><div class="label">Total Chunks</div><div class="value">{{ stats.total_chunks }}</div></div></div>
+    <div class="col-md-3"><div class="legal-kpi-card"><div class="label">FAISS Vectors</div><div class="value">{{ stats.total_embeddings }}</div></div></div>
   </div>
-
-  <div class="row mb-4">
-    <div class="col-md-4"><div class="card"><div class="card-body"><h6>Embedding Model</h6><p>{{ stats.embedding_model }}</p><small>Dim: {{ stats.embedding_dimension }}</small></div></div></div>
-    <div class="col-md-4"><div class="card"><div class="card-body"><h6>Last FAISS Rebuild</h6><p>{{ stats.last_rebuild }}</p></div></div></div>
-    <div class="col-md-4"><div class="card"><div class="card-body"><h6>Total Queries</h6><h2>{{ stats.total_queries }}</h2></div></div></div>
-  </div>
-
-  <div class="row mb-4">
-    <div class="col-md-3"><div class="card border-warning"><div class="card-body"><h6>Waiting</h6><h3>{{ stats.documents_waiting }}</h3></div></div></div>
-    <div class="col-md-3"><div class="card border-info"><div class="card-body"><h6>Processing</h6><h3>{{ stats.documents_processing }}</h3></div></div></div>
-    <div class="col-md-3"><div class="card border-danger"><div class="card-body"><h6>Failed</h6><h3>{{ stats.documents_failed }}</h3></div></div></div>
-    <div class="col-md-3"><div class="card border-success"><div class="card-body"><h6>Completed</h6><h3>{{ stats.documents_completed }}</h3></div></div></div>
-  </div>
-
-  <form method="post" class="mb-4">
+  <form method="post" class="d-flex gap-2 flex-wrap mb-4">
     {% csrf_token %}
-    <button type="submit" name="action" value="rebuild_faiss" class="btn btn-primary">Rebuild FAISS Index</button>
-    <button type="submit" name="action" value="retry_failed" class="btn btn-warning">Retry Failed Documents</button>
-    <a href="{% url 'admin:legal_ai_legaldocument_changelist' %}" class="btn btn-secondary">Manage Documents</a>
-    <a href="{% url 'admin:retrieval-debugger' %}" class="btn btn-info">Retrieval Debugger</a>
+    <button name="action" value="rebuild_faiss" class="btn btn-primary"><i class="fa-solid fa-arrows-rotate me-1"></i>Rebuild FAISS Index</button>
+    <button name="action" value="retry_failed" class="btn btn-warning"><i class="fa-solid fa-rotate-right me-1"></i>Retry Failed</button>
+    <a href="{% url 'admin:legal_ai_legaldocument_changelist' %}" class="btn btn-secondary"><i class="fa-solid fa-file-contract me-1"></i>Manage Documents</a>
+    <a href="{% url 'retrieval_debugger' %}" class="btn btn-info"><i class="fa-solid fa-magnifying-glass-chart me-1"></i>Retrieval Debugger</a>
   </form>
-
-  <h4>Recent Documents</h4>
-  <table class="table table-sm">
-    <thead><tr><th>ID</th><th>Title</th><th>Status</th><th>Chunks</th><th>Uploaded</th></tr></thead>
-    <tbody>
-      {% for doc in stats.recent_documents %}
-      <tr>
-        <td><a href="{% url 'admin:legal_ai_legaldocument_change' doc.pk %}">{{ doc.pk }}</a></td>
-        <td>{{ doc.title|truncatechars:60 }}</td>
-        <td>{{ doc.processing_status }}</td>
-        <td>{{ doc.chunk_count }}</td>
-        <td>{{ doc.uploaded_at }}</td>
-      </tr>
-      {% empty %}<tr><td colspan="5">No documents yet.</td></tr>{% endfor %}
-    </tbody>
-  </table>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead><tr><th>Title</th><th>Status</th><th>Chunks</th><th>Uploaded</th></tr></thead>
+      <tbody>
+        {% for doc in stats.recent_documents %}
+        <tr>
+          <td><a href="{% url 'admin:legal_ai_legaldocument_change' doc.pk %}">{{ doc.title|truncatechars:60 }}</a></td>
+          <td>{{ doc.get_processing_status_display }}</td>
+          <td>{{ doc.chunk_count }}</td>
+          <td>{{ doc.uploaded_at|date:"M d, Y" }}</td>
+        </tr>
+        {% empty %}<tr><td colspan="4">No documents yet.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 {% endblock %}

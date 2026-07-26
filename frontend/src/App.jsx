@@ -28,6 +28,7 @@ const App = () => {
             </ProtectedRoute>
           }>
            <Route index element ={<ChatArea/>}/> 
+           <Route path=":conversationId" element={<ChatArea />} />
              <Route
           path="profile"
           element={
@@ -46,7 +47,7 @@ const App = () => {
           }
         />
 
-      
+
       </Routes>
     </BrowserRouter>
   );

@@ -1,26 +1,27 @@
 import json
 import os
+import re
 import urllib.error
 import urllib.request
 from typing import Any
 
 from legal_information_assistance_system.legal_ai.services.language import language_service
+from legal_information_assistance_system.legal_ai.services.prompts import LEGAL_SYSTEM_PROMPT
+
+# Common typo corrections for legal queries
+TYPO_CORRECTIONS = {
+    "atq": "atm",
+    "atqr": "atm",
+    "ant": "and",
+}
 
 
-LEGAL_SYSTEM_PROMPT_TEMPLATE = """You are a Legal Information Assistant for Nepal law.
-
-GUIDELINES:
-1. Use the provided legal context as your primary source.
-2. You MAY infer logical conclusions from the provided context.
-3. You MAY draw logical inferences when the context provides a clear legal framework.
-4. NEVER say you cannot find information if relevant context exists — use what is available.
-5. If the context is genuinely insufficient for a specific question, provide the best answer possible based on what IS available, and note any limitations.
-6. Cite sources inline as [Source N] with document, part, chapter, section/article.
-7. Respond ONLY in {response_language}.
-8. Do not provide personal legal advice — provide legal information only.
-9. Format answers in Markdown: headings (##), bullet/numbered lists, tables when useful.
-10. End with a ## Sources section listing citations and links when available.
-"""
+def correct_typos(query: str) -> str:
+    """Correct common typos in user queries."""
+    corrected = query.lower()
+    for typo, correction in TYPO_CORRECTIONS.items():
+        corrected = corrected.replace(typo, correction)
+    return corrected
 
 
 class LegalLLM:
@@ -37,6 +38,9 @@ class LegalLLM:
         self.ollama_chat_endpoint = os.getenv("OLLAMA_CHAT_ENDPOINT", "/api/chat")
         # Force CPU inference when GPU CUDA kernels fail (common on Windows + older drivers).
         self.ollama_num_gpu = int(os.getenv("OLLAMA_NUM_GPU", "0"))
+        # Performance settings - increased timeout for Nepali responses
+        self.ollama_timeout = int(os.getenv("OLLAMA_TIMEOUT", "120"))  # Increased for multilingual support
+        self.max_tokens = int(os.getenv("LLM_MAX_TOKENS", "2048"))  # Increased from 1024 for longer structured answers
         
         # Language mappings
         self.language_names = {
@@ -44,12 +48,17 @@ class LegalLLM:
             "ne": "Nepali",
         }
 
-    def generate(self, query: str, context: str) -> str:
+    def generate(self, query: str, context: str, conversation_history: str = "") -> str:
+        detected_lang = language_service.detect_language(query)
+        
+        # Respect configured provider - do not override based on language
         if self.provider == "openai":
-            prompt = self.build_prompt(query, context)
-            return self._openai_call(prompt)
+            prompt = self.build_prompt(query, context, conversation_history)
+            response = self._openai_call(prompt)
+            return response
         if self.provider == "ollama":
-            return self._ollama_call(query, context)
+            response = self._ollama_call(query, context, conversation_history)
+            return response
         return self._mock_response()
 
     def generate_from_prompt(self, full_prompt: str, *, query_language: str = "en") -> str:
@@ -97,19 +106,26 @@ class LegalLLM:
                 return "प्रदान गरिएका कानूनी स्रोतहरूमा यो प्रश्नको लागि पर्याप्त जानकारी छैन।"
             return "The provided legal sources do not contain sufficient information to answer this question."
 
-    def build_prompt(self, query: str, context: str) -> str:
+    def build_prompt(self, query: str, context: str, conversation_history: str = "") -> str:
         # Detect query language
         detected_lang = language_service.detect_language(query)
         response_lang = self.language_names.get(detected_lang, "English")
         
-        system_prompt = LEGAL_SYSTEM_PROMPT_TEMPLATE.format(response_language=response_lang)
-        
-        return (
-            f"{system_prompt}\n\n"
+        prompt_parts = [
+            f"{LEGAL_SYSTEM_PROMPT}\n\n",
             f"--- LEGAL CONTEXT ---\n{context}\n\n"
-            f"--- USER QUESTION (in {response_lang}) ---\n{query}\n\n"
+        ]
+        
+        # Add conversation history if available
+        if conversation_history:
+            prompt_parts.append(f"--- CONVERSATION HISTORY ---\n{conversation_history}\n\n")
+        
+        prompt_parts.extend([
+            f"--- USER QUESTION (in {response_lang}) ---\n{query}\n\n",
             f"--- ANSWER (MUST be in {response_lang} only) ---"
-        )
+        ])
+        
+        return "".join(prompt_parts)
 
     def _openai_call(self, prompt: str) -> str:
         try:
@@ -133,7 +149,7 @@ class LegalLLM:
 
             detected_lang = language_service.detect_language(prompt) if "USER QUESTION (in" in prompt else "en"
             response_lang = self.language_names.get(detected_lang, "English")
-            system_prompt = LEGAL_SYSTEM_PROMPT_TEMPLATE.format(response_language=response_lang)
+            system_prompt = LEGAL_SYSTEM_PROMPT
 
             response = client.chat.completions.create(
                 model=self.openai_model,
@@ -147,8 +163,8 @@ class LegalLLM:
         except Exception as exc:
             raise RuntimeError(f"OpenAI call failed: {exc}") from exc
 
-    def _ollama_call(self, query: str, context: str | None = None, fallback: bool = False) -> str:
-        request_body = self._build_ollama_chat_payload(query, context=context, fallback=fallback)
+    def _ollama_call(self, query: str, context: str | None = None, conversation_history: str = "", fallback: bool = False) -> str:
+        request_body = self._build_ollama_chat_payload(query, context=context, conversation_history=conversation_history, fallback=fallback)
         request = urllib.request.Request(
             f"{self.ollama_host}{self.ollama_chat_endpoint}",
             data=json.dumps(request_body).encode("utf-8"),
@@ -157,8 +173,8 @@ class LegalLLM:
         )
 
         try:
-            # Increased timeout to 320 seconds for complex legal analysis
-            with urllib.request.urlopen(request, timeout=320) as response:
+            # Use configured timeout for faster responses
+            with urllib.request.urlopen(request, timeout=self.ollama_timeout) as response:
                 payload = json.loads(response.read().decode("utf-8"))
 
             response_text = self._extract_ollama_response(payload)
@@ -173,10 +189,10 @@ class LegalLLM:
         except Exception as exc:
             raise RuntimeError(f"Ollama call failed: {exc}") from exc
 
-    def _build_ollama_chat_payload(self, query: str, context: str | None = None, fallback: bool = False) -> dict[str, Any]:
+    def _build_ollama_chat_payload(self, query: str, context: str | None = None, conversation_history: str = "", fallback: bool = False) -> dict[str, Any]:
         detected_lang = language_service.detect_language(query)
         response_lang = self.language_names.get(detected_lang, "English")
-        system_prompt = LEGAL_SYSTEM_PROMPT_TEMPLATE.format(response_language=response_lang)
+        system_prompt = LEGAL_SYSTEM_PROMPT
 
         if fallback or not context:
             user_content = (
@@ -185,10 +201,13 @@ class LegalLLM:
                 f"Question: {query}"
             )
         else:
-            user_content = (
-                f"Here is the retrieved legal context:\n\n{context}\n\n"
-                f"Question: {query}"
-            )
+            user_content = f"Here is the retrieved legal context:\n\n{context}\n\n"
+            
+            # Add conversation history if available
+            if conversation_history:
+                user_content += f"Conversation history:\n{conversation_history}\n\n"
+            
+            user_content += f"Question: {query}"
 
         payload: dict[str, Any] = {
             "model": self.model,
@@ -197,7 +216,7 @@ class LegalLLM:
                 {"role": "user", "content": user_content},
             ],
             "temperature": 0.1,
-            "max_tokens": 1536,
+            "max_tokens": self.max_tokens,
         }
         if self.ollama_num_gpu >= 0:
             payload["options"] = {"num_gpu": self.ollama_num_gpu}
@@ -206,7 +225,7 @@ class LegalLLM:
 
     def _ollama_call_from_prompt(self, full_prompt: str, *, query_language: str = "en") -> str:
         response_lang = self.language_names.get(query_language, "English")
-        system_prompt = LEGAL_SYSTEM_PROMPT_TEMPLATE.format(response_language=response_lang)
+        system_prompt = LEGAL_SYSTEM_PROMPT
         request_body: dict[str, Any] = {
             "model": self.model,
             "messages": [
@@ -214,7 +233,7 @@ class LegalLLM:
                 {"role": "user", "content": full_prompt},
             ],
             "temperature": 0.1,
-            "max_tokens": 1536,
+            "max_tokens": self.max_tokens,
         }
         if self.ollama_num_gpu >= 0:
             request_body["options"] = {"num_gpu": self.ollama_num_gpu}
@@ -226,7 +245,7 @@ class LegalLLM:
             method="POST",
         )
         try:
-            with urllib.request.urlopen(request, timeout=120) as response:
+            with urllib.request.urlopen(request, timeout=self.ollama_timeout) as response:
                 payload = json.loads(response.read().decode("utf-8"))
             response_text = self._extract_ollama_response(payload)
             if response_text:
@@ -271,7 +290,7 @@ class LegalLLM:
                     return str(first["content"]).strip()
                 if "response" in first and first["response"]:
                     return str(first["response"]).strip()
-
+ 
         if "output" in payload:
             output = payload["output"]
             if isinstance(output, str) and output:

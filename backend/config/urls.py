@@ -10,6 +10,14 @@ from drf_spectacular.views import SpectacularAPIView
 from drf_spectacular.views import SpectacularSwaggerView
 from legal_information_assistance_system.users.views import password_reset_confirm_view
 from legal_information_assistance_system.users.views import password_reset_done_view
+from legal_information_assistance_system.legal_ai.admin import analytics_dashboard_view
+from legal_information_assistance_system.legal_ai.admin import ingestion_dashboard_view
+from legal_information_assistance_system.legal_ai.admin import mark_all_notifications_read
+from legal_information_assistance_system.legal_ai.admin import retrieval_debugger_view
+from legal_information_assistance_system.legal_ai.api.views import (
+    ConversationDetailView,
+    ConversationListCreateView,
+)
 
 urlpatterns = [
     path("reset-password/", password_reset_confirm_view, name="password-reset-confirm"),
@@ -23,6 +31,10 @@ urlpatterns = [
     path("users/", include("legal_information_assistance_system.users.urls", namespace="users")),
     path("accounts/", include("allauth.urls")),
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
+    path("admin/legal-ai/ingestion/", ingestion_dashboard_view, name="ingestion_dashboard"),
+    path("admin/legal-ai/analytics/", analytics_dashboard_view, name="analytics_dashboard"),
+    path("admin/legal-ai/retrieval-debugger/", retrieval_debugger_view, name="retrieval_debugger"),
+    path("admin/legal_ai/mark-all-read/", mark_all_notifications_read, name="mark_all_notifications_read"),
     path("admin/", admin.site.urls),
 ]
 
@@ -38,7 +50,10 @@ urlpatterns += [
         SpectacularSwaggerView.as_view(url_name="api-schema"),
         name="api-docs",
     ),
-    path("api/", include("legal_information_assistance_system.legal_ai.api.urls")),
+    path("api/legal-ai/", include("legal_information_assistance_system.legal_ai.api.urls")),
+    # Direct routes for frontend compatibility
+    path("api/conversations/", ConversationListCreateView.as_view(), name="conversations"),
+    path("api/conversations/<int:pk>/", ConversationDetailView.as_view(), name="conversation-detail"),
     path(
         "api/",
         include("legal_information_assistance_system.users.api.urls"),

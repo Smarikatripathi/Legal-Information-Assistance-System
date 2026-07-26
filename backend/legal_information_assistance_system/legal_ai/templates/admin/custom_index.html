@@ -1,0 +1,186 @@
+{% extends "admin/custom_base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-3">Dashboard Overview</h2>
+            <p class="text-muted">Welcome to the Legal AI Admin Panel. Monitor your system performance and manage legal documents.</p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="dashboard-card">
+                <div class="card-icon stat-primary">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="card-value">{{ stats.total_documents }}</div>
+                <div class="card-label">Total Documents</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="dashboard-card">
+                <div class="card-icon stat-success">
+                    <i class="fas fa-cubes"></i>
+                </div>
+                <div class="card-value">{{ stats.total_chunks }}</div>
+                <div class="card-label">Total Chunks</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="dashboard-card">
+                <div class="card-icon stat-info">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <div class="card-value">{{ stats.total_queries }}</div>
+                <div class="card-label">Total Queries</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="dashboard-card">
+                <div class="card-icon stat-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="card-value">{{ stats.unresolved_gaps }}</div>
+                <div class="card-label">Knowledge Gaps</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="dashboard-card">
+                <div class="card-icon stat-info">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="card-value">{{ stats.total_conversations }}</div>
+                <div class="card-label">Conversations</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="dashboard-card">
+                <div class="card-icon stat-danger">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="card-value">{{ stats.unread_notifications }}</div>
+                <div class="card-label">Unread Notifications</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="dashboard-card">
+                <div class="card-icon stat-success">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="card-value">{{ stats.documents_completed }}</div>
+                <div class="card-label">Documents Processed</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="dashboard-card">
+                <div class="card-icon stat-warning">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="card-value">{{ stats.documents_processing }}</div>
+                <div class="card-label">Processing</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Documents & Quick Actions -->
+    <div class="row">
+        <div class="col-md-8 mb-4">
+            <div class="dashboard-card">
+                <h4 class="mb-3">Recent Documents</h4>
+                {% if stats.recent_documents %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Status</th>
+                                <th>Uploaded</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for doc in stats.recent_documents %}
+                            <tr>
+                                <td>{{ doc.title|truncatewords:8 }}</td>
+                                <td>
+                                    <span class="status-badge {% if doc.processing_status == 'completed' %}status-success{% elif doc.processing_status == 'failed' %}status-danger{% else %}status-warning{% endif %}">
+                                        {{ doc.processing_status|title }}
+                                    </span>
+                                </td>
+                                <td>{{ doc.uploaded_at|date:"M d, Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No recent documents found.</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="dashboard-card">
+                <h4 class="mb-3">Quick Actions</h4>
+                <div class="d-grid gap-2">
+                    <a href="/admin/legal_ai/legaldocument/add/" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i>Upload Document
+                    </a>
+                    <a href="/admin/legal-ai/ingestion/" class="btn btn-info">
+                        <i class="fas fa-stream me-2"></i>Ingestion Dashboard
+                    </a>
+                    <a href="/admin/legal-ai/analytics/" class="btn btn-success">
+                        <i class="fas fa-chart-bar me-2"></i>RAG Analytics
+                    </a>
+                    <a href="/admin/legal_ai/knowledgegap/" class="btn btn-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Knowledge Gaps
+                    </a>
+                    <a href="/admin/legal_ai/adminnotification/" class="btn btn-danger">
+                        <i class="fas fa-bell me-2"></i>Notifications
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Health -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dashboard-card">
+                <h4 class="mb-3">System Health</h4>
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>FAISS Index:</strong>
+                        <span class="status-badge status-{{ 'success' if stats.faiss_status == 'ready' else 'warning' }}">
+                            {{ stats.faiss_status|title }}
+                        </span>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Embedding Model:</strong>
+                        <span class="text-muted">{{ stats.embedding_model }}</span>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Last Index Rebuild:</strong>
+                        <span class="text-muted">{{ stats.last_rebuild }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+// Auto-refresh stats every 30 seconds
+setTimeout(function() {
+    location.reload();
+}, 30000);
+</script>
+{% endblock %}

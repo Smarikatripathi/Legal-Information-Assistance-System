@@ -20,6 +20,20 @@ NON_LEGAL_PATTERNS = [
     r"\b(recipe|cook|cooking|food|restaurant|pizza|burger|dinner)\b",
     r"\b(cricket|football|basketball|sport|match|score|game|team)\b",
     r"\b(hello|hi|hey|good morning|good evening|how are you|thanks|thank you)\b",
+    
+    # Mathematical expressions
+    r"^[\d\s\+\-\*\/\=\(\)\.]+$",
+    r"\b\d+\s*[\+\-\*\/]\s*\d+\s*[=]?\s*\d+",
+    
+    # Simple statements without question marks (non-legal topics)
+    r"^(i am|i'm|i have|he is|she is|they are|it is)\s+(happy|sad|good|bad|fine|okay|tired|hungry|thirsty)",
+    r"^(the|this|that)\s+(sky|sun|moon|weather|day|night)\s+(is|was|will be)",
+
+    # Geography/capital questions (unless about Nepal)
+    r"\b(capital|capital city)\s+(of|in|for)\s+(?!nepal|काठमाडौं|kathmandu)",
+    
+    # Celebrity/sports figures
+    r"\b(cristiano ronaldo|messi|lionel messi|neymar|mbappe|virat kohli|sachin tendulkar|roger federer|nadal|djokovic|lebron james|kobe bryant|michael jordan)\b",
 
     r"(जोक|हासो)",
     r"(खाना|रेसिपी|पकाउने)",
@@ -30,8 +44,8 @@ NON_LEGAL_PATTERNS = [
 
 # Legal keywords to override non-legal classification
 LEGAL_KEYWORD_OVERRIDE = [
-    r"\b(law|legal|right|right|court|judge|act|code|section|article|constitution|case|judgment|verdict|lawyer|attorney)\b",
-    r"(कानुन|कानून|अधिकार|अदालत|न्यायाधीश|ऐन|संहिता|धारा|अनुच्छेद|संविधान|मुद्दा|निर्णय|वकील)",
+    r"\b(law|legal|right|right|court|judge|act|code|section|article|constitution|case|judgment|verdict|lawyer|attorney|theft|stolen|crime|criminal|punishment|penalty|offense|police|complaint|report)\b",
+    r"(कानुन|कानून|अधिकार|अदालत|न्यायाधीश|ऐन|संहिता|धारा|अनुच्छेद|संविधान|मुद्दा|निर्णय|वकील|चोरी|चोर|अपराध|फौजदारी|दण्ड|सजाय|प्रहरी|गुनासो)",
 ]
 
 

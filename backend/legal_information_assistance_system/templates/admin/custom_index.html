@@ -1,0 +1,19 @@
+{% extends "jazzmin/index.html" %}
+
+{% block content %}
+<div class="legal-dashboard-shell">
+  <div class="legal-dashboard-hero">
+    <div>
+      <p class="eyebrow">Legal Information Assistance System</p>
+      <h1>Admin Dashboard</h1>
+      <p class="text-muted">Operational overview for documents, retrieval, notifications, and RAG health.</p>
+    </div>
+  </div>
+  <div class="row g-3">
+    <div class="col-md-3"><div class="legal-kpi-card"><div class="label">Documents</div><div class="value">{{ app_list|length }}</div></div></div>
+    <div class="col-md-3"><div class="legal-kpi-card"><div class="label">Notifications</div><div class="value">Live</div></div></div>
+    <div class="col-md-3"><div class="legal-kpi-card"><div class="label">Analytics</div><div class="value">Ready</div></div></div>
+    <div class="col-md-3"><div class="legal-kpi-card"><div class="label">RAG</div><div class="value">Active</div></div></div>
+  </div>
+</div>
+{% endblock %}

@@ -6,10 +6,11 @@ from django.conf import settings
 
 from legal_information_assistance_system.legal_ai.services.language import language_service
 
-DENSE_WEIGHT = getattr(settings, "RAG_DENSE_WEIGHT", 0.7)
-KEYWORD_WEIGHT = getattr(settings, "RAG_KEYWORD_WEIGHT", 0.3)
-MIN_SCORE = getattr(settings, "RAG_MIN_SCORE", 0.35)  # Lowered from 0.55 to allow weaker but valid results
-FALLBACK_MIN_SCORE = 0.20  # Very weak threshold for reasoning fallback
+DENSE_WEIGHT = getattr(settings, "RAG_DENSE_WEIGHT", 0.70)
+KEYWORD_WEIGHT = getattr(settings, "RAG_KEYWORD_WEIGHT", 0.30)
+MIN_SCORE = getattr(settings, "RAG_MIN_SCORE", 0.65)  # Balanced threshold to prevent hallucinations while allowing legitimate queries
+FALLBACK_MIN_SCORE = getattr(settings, "RAG_FALLBACK_MIN_SCORE", 0.20)
+CONFIDENCE_THRESHOLD = getattr(settings, "RAG_CONFIDENCE_THRESHOLD", 0.65)  # Minimum confidence to answer
 
 NEPALI_DIGIT_MAP = str.maketrans("०१२३४५६७८९", "0123456789")
 
