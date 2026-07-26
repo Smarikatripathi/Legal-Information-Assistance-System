@@ -1,0 +1,329 @@
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="{% get_current_language as LANGUAGE_CODE %}{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}
+            Legal Information Assistance System
+        {% endblock %}
+    </title>
+
+    <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+            min-height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            padding:20px;
+
+            background:#F4F7FC;
+
+            font-family:"Inter",sans-serif;
+        }
+
+        .auth-wrapper{
+            width:100%;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+        }
+
+        .card{
+            width:100%;
+            max-width:430px;
+
+            background:#FFFFFF;
+
+            border-radius:22px;
+
+            padding:30px;
+
+            box-shadow:
+                0 8px 24px rgba(15,23,42,.08),
+                0 2px 6px rgba(15,23,42,.04);
+        }
+
+        .logo{
+            width:58px;
+            height:58px;
+
+            background:#D90429;
+
+            border-radius:16px;
+
+            display:flex;
+            justify-content:center;
+            align-items:center;
+
+            margin:0 auto 18px;
+
+            color:#FFFFFF;
+
+            box-shadow:0 8px 18px rgba(217,4,41,.15);
+        }
+
+        .logo svg{
+            width:26px;
+            height:26px;
+        }
+
+        h1{
+            text-align:center;
+
+            font-size:2rem;
+            font-weight:700;
+
+            color:#17213C;
+
+            margin-bottom:10px;
+        }
+
+        .subtitle{
+            text-align:center;
+
+            color:#64748B;
+
+            font-size:15px;
+
+            line-height:1.6;
+
+            margin-bottom:24px;
+        }
+
+        label{
+            display:block;
+
+            font-size:15px;
+
+            font-weight:600;
+
+            color:#334155;
+
+            margin-bottom:8px;
+        }
+
+        input{
+            width:100%;
+
+            height:50px;
+
+            border:1px solid #D8E0EB;
+
+            border-radius:12px;
+
+            padding:0 16px;
+
+            font-size:15px;
+
+            transition:.25s;
+
+            margin-bottom:20px;
+        }
+
+        input:focus{
+            outline:none;
+
+            border-color:#2563EB;
+
+            box-shadow:0 0 0 3px rgba(37,99,235,.12);
+        }
+
+        button{
+            width:100%;
+
+            height:50px;
+
+            border:none;
+
+            border-radius:12px;
+
+            background:#2563EB;
+
+            color:#FFFFFF;
+
+            font-size:16px;
+
+            font-weight:600;
+
+            cursor:pointer;
+
+            transition:.2s;
+        }
+
+        button:hover{
+            background:#1D4ED8;
+        }
+
+        button:active{
+            transform:scale(.99);
+        }
+
+        .back-link{
+            display:flex;
+
+            justify-content:center;
+            align-items:center;
+
+            gap:8px;
+
+            margin-top:20px;
+
+            color:#2563EB;
+
+            text-decoration:none;
+
+            font-size:15px;
+
+            font-weight:500;
+        }
+
+        .back-link:hover{
+            color:#1D4ED8;
+        }
+
+        .alert{
+            padding:14px;
+
+            border-radius:12px;
+
+            margin-bottom:18px;
+
+            font-size:14px;
+        }
+
+        .alert-danger{
+            background:#FEE2E2;
+            color:#B91C1C;
+        }
+
+        .alert-success{
+            background:#DCFCE7;
+            color:#15803D;
+        }
+
+        .field-error{
+            color:#DC2626;
+
+            font-size:13px;
+
+            margin-top:-10px;
+            margin-bottom:16px;
+        }
+
+        ul.errorlist{
+            list-style:none;
+
+            padding:0;
+
+            margin:8px 0 14px;
+
+            color:#DC2626;
+
+            font-size:13px;
+        }
+
+        @media (max-width:576px){
+
+            body{
+                padding:16px;
+            }
+
+            .card{
+                padding:24px;
+                border-radius:18px;
+            }
+
+            .logo{
+                width:52px;
+                height:52px;
+                margin-bottom:16px;
+            }
+
+            .logo svg{
+                width:22px;
+                height:22px;
+            }
+
+            h1{
+                font-size:1.75rem;
+            }
+
+            .subtitle{
+                font-size:14px;
+                margin-bottom:20px;
+            }
+
+            input,
+            button{
+                height:48px;
+                font-size:15px;
+            }
+
+            .back-link{
+                font-size:14px;
+            }
+
+        }
+
+    </style>
+
+    {% block extra_css %}{% endblock %}
+
+</head>
+
+<body>
+
+    <div class="auth-wrapper">
+
+        <div class="card">
+
+            <div class="logo">
+
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+
+                    <path d="M12 3v18"/>
+                    <path d="m19 8 3 8a5 5 0 0 1-6 0zV7"/>
+                    <path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1"/>
+                    <path d="m5 8 3 8a5 5 0 0 1-6 0zV7"/>
+                    <path d="M7 21h10"/>
+
+                </svg>
+
+            </div>
+
+            {% block content %}
+            {% endblock %}
+
+        </div>
+
+    </div>
+
+    {% block extra_js %}
+    {% endblock %}
+
+</body>
+</html>
