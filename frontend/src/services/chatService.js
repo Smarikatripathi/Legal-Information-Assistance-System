@@ -1,20 +1,11 @@
-import axios from "axios";
-
-const API = "http://localhost:8000/api";
+import apiClient from "./apiClient";
 
 export const sendMessage = async (query , conversationId = null)=>{
-const token = localStorage.getItem("access");
-
-const res = await axios.post(
-    `${API}/query/`,
+const res = await apiClient.post(
+    "/api/query/",
     {
         query,
         conversation_id : conversationId,
-    },
-    {
-        headers:{
-            Authorization : `Bearer ${token}`
-        },
     }
 );
 

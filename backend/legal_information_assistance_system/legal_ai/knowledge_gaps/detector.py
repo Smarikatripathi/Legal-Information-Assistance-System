@@ -9,8 +9,8 @@ from legal_information_assistance_system.legal_ai.models import KnowledgeGap, Co
 from legal_information_assistance_system.legal_ai.services.notifications import notification_service
 
 # Configuration values (previously from pipeline.config)
-KNOWLEDGE_GAP_THRESHOLD = getattr(settings, "RAG_KNOWLEDGE_GAP_THRESHOLD", 0.25)  # Lowered to reduce false gap detection
-MIN_SCORE = getattr(settings, "RAG_MIN_SCORE", 0.25)  # Lowered to match retrieval threshold
+KNOWLEDGE_GAP_THRESHOLD = getattr(settings, "RAG_KNOWLEDGE_GAP_THRESHOLD", 0.65)  # Match retrieval threshold
+MIN_SCORE = getattr(settings, "RAG_MIN_SCORE", 0.65)  # Match retrieval threshold
 
 
 @dataclass

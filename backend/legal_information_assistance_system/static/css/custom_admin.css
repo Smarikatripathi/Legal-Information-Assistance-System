@@ -1,0 +1,459 @@
+/* Custom Admin CSS for Legal Information Assistance System */
+
+:root {
+    --legal-primary: #2563eb;
+    --legal-primary-dark: #1d4ed8;
+    --legal-secondary: #64748b;
+    --legal-success: #16a34a;
+    --legal-warning: #f59e0b;
+    --legal-danger: #dc2626;
+    --legal-bg-light: #f8fafc;
+    --legal-card-bg: #ffffff;
+    --legal-border: #e2e8f0;
+    --legal-text-primary: #1e293b;
+    --legal-text-secondary: #64748b;
+    --sidebar-width: 260px;
+}
+
+/* General improvements */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--legal-bg-light);
+}
+
+/* Custom Legal Admin Sidebar */
+.legal-admin-sidebar {
+    width: var(--sidebar-width);
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    border-right: 1px solid var(--legal-border);
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+}
+
+.legal-admin-sidebar.sidebar-collapsed {
+    transform: translateX(-100%);
+}
+
+body.sidebar-collapsed .legal-admin-main {
+    margin-left: 0;
+}
+
+.legal-admin-main {
+    margin-left: var(--sidebar-width);
+    transition: margin-left 0.3s ease;
+    min-height: 100vh;
+}
+
+/* Responsive sidebar */
+@media (max-width: 768px) {
+    .legal-admin-sidebar {
+        transform: translateX(-100%);
+    }
+    
+    .legal-admin-sidebar:not(.sidebar-collapsed) {
+        transform: translateX(0);
+    }
+    
+    .legal-admin-main {
+        margin-left: 0;
+    }
+}
+
+/* Sidebar improvements */
+.jazzmin-sidebar {
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    border-right: 1px solid var(--legal-border);
+}
+
+.jazzmin-sidebar .nav-link {
+    color: #cbd5e1;
+    border-radius: 0.5rem;
+    margin: 0.25rem 0.75rem;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.jazzmin-sidebar .nav-link:hover {
+    background-color: rgba(37, 99, 235, 0.1);
+    color: var(--legal-primary);
+}
+
+.jazzmin-sidebar .nav-link.active {
+    background-color: var(--legal-primary);
+    color: white;
+}
+
+.jazzmin-sidebar .nav-header {
+    color: #94a3b8;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1rem 1rem 0.5rem;
+}
+
+/* Card improvements */
+.card {
+    border: 1px solid var(--legal-border);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    background-color: var(--legal-card-bg);
+    transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Button improvements */
+.btn {
+    border-radius: 0.5rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background-color: var(--legal-primary);
+    border-color: var(--legal-primary);
+}
+
+.btn-primary:hover {
+    background-color: var(--legal-primary-dark);
+    border-color: var(--legal-primary-dark);
+}
+
+.btn-success {
+    background-color: var(--legal-success);
+    border-color: var(--legal-success);
+}
+
+.btn-warning {
+    background-color: var(--legal-warning);
+    border-color: var(--legal-warning);
+}
+
+.btn-danger {
+    background-color: var(--legal-danger);
+    border-color: var(--legal-danger);
+}
+
+/* Table improvements */
+.table {
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.table thead th {
+    background-color: var(--legal-bg-light);
+    border-bottom: 2px solid var(--legal-border);
+    font-weight: 600;
+    color: var(--legal-text-primary);
+}
+
+.table tbody tr:hover {
+    background-color: var(--legal-bg-light);
+}
+
+/* Badge improvements */
+.badge {
+    border-radius: 0.375rem;
+    font-weight: 500;
+    padding: 0.375rem 0.75rem;
+}
+
+.badge-success {
+    background-color: rgba(22, 163, 74, 0.1);
+    color: var(--legal-success);
+}
+
+.badge-warning {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: var(--legal-warning);
+}
+
+.badge-danger {
+    background-color: rgba(220, 38, 38, 0.1);
+    color: var(--legal-danger);
+}
+
+.badge-info {
+    background-color: rgba(37, 99, 235, 0.1);
+    color: var(--legal-primary);
+}
+
+/* Status badges */
+.status-completed {
+    background-color: rgba(22, 163, 74, 0.1);
+    color: var(--legal-success);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-processing {
+    background-color: rgba(37, 99, 235, 0.1);
+    color: var(--legal-primary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-pending {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: var(--legal-warning);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-failed {
+    background-color: rgba(220, 38, 38, 0.1);
+    color: var(--legal-danger);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Dashboard cards */
+.dashboard-kpi-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid var(--legal-border);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.dashboard-kpi-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.dashboard-kpi-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.dashboard-kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--legal-text-primary);
+    line-height: 1;
+}
+
+.dashboard-kpi-label {
+    font-size: 0.875rem;
+    color: var(--legal-text-secondary);
+    margin-top: 0.5rem;
+}
+
+/* Action buttons */
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.action-btn-view {
+    background-color: rgba(37, 99, 235, 0.1);
+    color: var(--legal-primary);
+}
+
+.action-btn-view:hover {
+    background-color: var(--legal-primary);
+    color: white;
+}
+
+.action-btn-edit {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: var(--legal-warning);
+}
+
+.action-btn-edit:hover {
+    background-color: var(--legal-warning);
+    color: white;
+}
+
+.action-btn-delete {
+    background-color: rgba(220, 38, 38, 0.1);
+    color: var(--legal-danger);
+}
+
+.action-btn-delete:hover {
+    background-color: var(--legal-danger);
+    color: white;
+}
+
+.action-btn-download {
+    background-color: rgba(22, 163, 74, 0.1);
+    color: var(--legal-success);
+}
+
+.action-btn-download:hover {
+    background-color: var(--legal-success);
+    color: white;
+}
+
+/* Notification bell */
+.notification-bell {
+    position: relative;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.2s ease;
+}
+
+.notification-bell:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.notification-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: var(--legal-danger);
+    color: white;
+    border-radius: 9999px;
+    padding: 0.125rem 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    min-width: 1.25rem;
+    text-align: center;
+}
+
+/* PDF Preview */
+.pdf-preview-container {
+    height: 80vh;
+    border: 1px solid var(--legal-border);
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.pdf-preview-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Search improvements */
+.search-input {
+    border: 1px solid var(--legal-border);
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem 0.5rem 2.5rem;
+    width: 300px;
+    transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--legal-primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.search-input-wrapper {
+    position: relative;
+}
+
+.search-input-wrapper i {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--legal-text-secondary);
+}
+
+/* Progress bars */
+.progress {
+    height: 0.5rem;
+    border-radius: 0.25rem;
+    background-color: var(--legal-border);
+    overflow: hidden;
+}
+
+.progress-bar {
+    transition: width 0.3s ease;
+}
+
+/* Empty states */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--legal-text-secondary);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+    color: var(--legal-text-primary);
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .search-input {
+        width: 200px;
+    }
+    
+    .dashboard-kpi-card {
+        padding: 1rem;
+    }
+    
+    .dashboard-kpi-value {
+        font-size: 1.5rem;
+    }
+}
+
+/* Accessibility improvements */
+.btn:focus,
+.action-btn:focus {
+    outline: 2px solid var(--legal-primary);
+    outline-offset: 2px;
+}
+
+a:focus {
+    outline: 2px solid var(--legal-primary);
+    outline-offset: 2px;
+}
+
+/* Tooltip improvements */
+[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #1e293b;
+    color: white;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    z-index: 1000;
+}

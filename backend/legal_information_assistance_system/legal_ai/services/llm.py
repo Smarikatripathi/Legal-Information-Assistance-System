@@ -46,11 +46,27 @@ class LegalLLM:
         self.language_names = {
             "en": "English",
             "ne": "Nepali",
+            "ne_roman": "Nepali",
         }
 
-    def generate(self, query: str, context: str, conversation_history: str = "") -> str:
+    def _determine_response_language(self, query: str) -> str:
         detected_lang = language_service.detect_language(query)
-        
+        if detected_lang in ("ne", "ne_roman"):
+            return "Nepali"
+        return "English"
+
+    def _language_instruction(self, query: str) -> str:
+        response_lang = self._determine_response_language(query)
+        if response_lang == "Nepali":
+            return (
+                "Language rule: Respond in pure Nepali only, written in Devanagari script. "
+                "Do not mix Hindi words or Hindi grammar. "
+                "Do not mix English unless a legal term is unavailable in Nepali. "
+                "If you must use a legal term, keep the rest of the answer in Nepali."
+            )
+        return "Language rule: Respond in English only."
+
+    def generate(self, query: str, context: str, conversation_history: str = "") -> str:
         # Respect configured provider - do not override based on language
         if self.provider == "openai":
             prompt = self.build_prompt(query, context, conversation_history)
@@ -107,12 +123,12 @@ class LegalLLM:
             return "The provided legal sources do not contain sufficient information to answer this question."
 
     def build_prompt(self, query: str, context: str, conversation_history: str = "") -> str:
-        # Detect query language
-        detected_lang = language_service.detect_language(query)
-        response_lang = self.language_names.get(detected_lang, "English")
+        response_lang = self._determine_response_language(query)
+        language_instruction = self._language_instruction(query)
         
         prompt_parts = [
             f"{LEGAL_SYSTEM_PROMPT}\n\n",
+            f"--- LANGUAGE INSTRUCTION ---\n{language_instruction}\n\n",
             f"--- LEGAL CONTEXT ---\n{context}\n\n"
         ]
         
@@ -146,9 +162,6 @@ class LegalLLM:
 
         try:
             client = openai.OpenAI(api_key=api_key)
-
-            detected_lang = language_service.detect_language(prompt) if "USER QUESTION (in" in prompt else "en"
-            response_lang = self.language_names.get(detected_lang, "English")
             system_prompt = LEGAL_SYSTEM_PROMPT
 
             response = client.chat.completions.create(
@@ -190,8 +203,8 @@ class LegalLLM:
             raise RuntimeError(f"Ollama call failed: {exc}") from exc
 
     def _build_ollama_chat_payload(self, query: str, context: str | None = None, conversation_history: str = "", fallback: bool = False) -> dict[str, Any]:
-        detected_lang = language_service.detect_language(query)
-        response_lang = self.language_names.get(detected_lang, "English")
+        response_lang = self._determine_response_language(query)
+        language_instruction = self._language_instruction(query)
         system_prompt = LEGAL_SYSTEM_PROMPT
 
         if fallback or not context:
@@ -208,6 +221,8 @@ class LegalLLM:
                 user_content += f"Conversation history:\n{conversation_history}\n\n"
             
             user_content += f"Question: {query}"
+        
+        user_content = f"{language_instruction}\n\n{user_content}"
 
         payload: dict[str, Any] = {
             "model": self.model,
@@ -226,6 +241,11 @@ class LegalLLM:
     def _ollama_call_from_prompt(self, full_prompt: str, *, query_language: str = "en") -> str:
         response_lang = self.language_names.get(query_language, "English")
         system_prompt = LEGAL_SYSTEM_PROMPT
+        if query_language in ("ne", "ne_roman"):
+            full_prompt = (
+                "Language rule: Respond in pure Nepali only, written in Devanagari script. "
+                "Do not mix Hindi words or Hindi grammar.\n\n" + full_prompt
+            )
         request_body: dict[str, Any] = {
             "model": self.model,
             "messages": [

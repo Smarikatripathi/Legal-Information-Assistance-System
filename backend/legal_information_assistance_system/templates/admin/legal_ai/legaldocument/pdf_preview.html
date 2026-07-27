@@ -1,27 +1,149 @@
-{% extends "admin/custom_base.html" %}
+{% extends "admin/base_site.html" %}
 {% load static %}
 
+{% block extrahead %}
+{{ block.super }}
+<style>
+.pdf-preview-container {
+    height: calc(100vh - 200px);
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background-color: #f8fafc;
+}
+
+.pdf-preview-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.preview-header {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.document-meta {
+    display: flex;
+    gap: 2rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.meta-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.meta-value {
+    font-size: 0.875rem;
+    color: #1e293b;
+    margin-top: 0.25rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: #cbd5e1;
+    margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+    font-size: 1.25rem;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: #64748b;
+    margin-bottom: 1.5rem;
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="legal-dashboard-shell">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-      <h1 class="mb-1">{{ document.title }}</h1>
-      <p class="text-muted mb-0">PDF preview</p>
+<div class="container-fluid">
+    <div class="preview-header">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div class="flex-grow-1">
+                <h1 class="mb-2">{{ document.title }}</h1>
+                <p class="text-muted mb-0">PDF Document Preview</p>
+                
+                <div class="document-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">Document Type</span>
+                        <span class="meta-value">{{ document.get_document_type_display }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Source</span>
+                        <span class="meta-value">{{ document.get_source_type_display }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Status</span>
+                        <span class="meta-value">{{ document.get_processing_status_display }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Chunks</span>
+                        <span class="meta-value">{{ document.chunk_count }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Uploaded</span>
+                        <span class="meta-value">{{ document.uploaded_at|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{% url 'admin:legal_ai_legaldocument_changelist' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Back to Documents
+                </a>
+                {% if document.file %}
+                <a href="{% url 'admin:legal_ai_legaldocument_change' document.pk %}" class="btn btn-outline-primary">
+                    <i class="fas fa-edit me-1"></i> Edit
+                </a>
+                <a href="{{ document.file.url }}" class="btn btn-primary" target="_blank" rel="noopener">
+                    <i class="fas fa-external-link-alt me-1"></i> Open in New Tab
+                </a>
+                <a href="{{ document.file.url }}" class="btn btn-success" download>
+                    <i class="fas fa-download me-1"></i> Download
+                </a>
+                {% endif %}
+            </div>
+        </div>
     </div>
-    <div class="d-flex gap-2">
-      <a href="{% url 'admin:legal_ai_legaldocument_change' document.pk %}" class="btn btn-secondary">Back</a>
-      {% if document.file %}
-      <a href="{{ document.file.url }}" class="btn btn-primary" target="_blank" rel="noopener">Open in new tab</a>
-      <a href="{{ document.file.url }}" class="btn btn-success" download>Download</a>
-      {% endif %}
+    
+    {% if document.file %}
+    <div class="pdf-preview-container">
+        <iframe src="{{ document.file.url }}" title="PDF preview for {{ document.title }}"></iframe>
     </div>
-  </div>
-  {% if document.file %}
-  <div class="pdf-preview-frame">
-    <iframe src="{{ document.file.url }}" title="PDF preview"></iframe>
-  </div>
-  {% else %}
-  <div class="alert alert-warning">PDF file is not available for this document.</div>
-  {% endif %}
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-file-pdf"></i>
+        <h3>PDF File Not Available</h3>
+        <p>This document does not have an associated PDF file. The document may have been created from a website source or the file may have been removed.</p>
+        <a href="{% url 'admin:legal_ai_legaldocument_change' document.pk %}" class="btn btn-primary">
+            <i class="fas fa-edit me-1"></i> Edit Document
+        </a>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

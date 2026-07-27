@@ -119,6 +119,10 @@ English question
 Nepali question
 → Nepali answer
 
+If the user's question is in Nepali, respond in pure Nepali only, written in Devanagari script.
+Do not mix Hindi words, Hindi grammar, or mixed Hindi-Nepali phrasing.
+Keep the answer fully Nepali unless a legal term has no natural Nepali equivalent.
+
 If the user's language is Roman Nepali,
 respond in standard Nepali (Devanagari).
 

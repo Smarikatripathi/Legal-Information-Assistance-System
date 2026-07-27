@@ -189,13 +189,36 @@ class LegalDocumentAdmin(admin.ModelAdmin):
 
 @admin.register(LegalChunk)
 class LegalChunkAdmin(admin.ModelAdmin):
-    list_display = ("id", "doc", "title_preview", "section", "article", "chunk_index", "embedding_id")
-    list_filter = ("doc__source_type", "doc")
+    list_display = ("doc", "title_preview", "section", "article", "chunk_index", "embedding_status", "view_actions")
+    list_filter = ("doc__source_type", "doc", "chunk_type")
     search_fields = ("text", "title", "section", "article", "dhara")
+    list_per_page = 25
 
     @admin.display(description="Title")
     def title_preview(self, obj):
-        return (obj.title or obj.text[:80]).replace("\n", " ")[:80]
+        max_length = 80
+        title = obj.title or obj.text[:max_length]
+        title_clean = title.replace("\n", " ")
+        if len(title_clean) > max_length:
+            return format_html('<span title="{}">{}</span>', title, title_clean[:max_length] + "...")
+        return title_clean
+
+    @admin.display(description="Embedding")
+    def embedding_status(self, obj):
+        if obj.embedding_id:
+            return _badge("Indexed", "success")
+        return _badge("Not Indexed", "secondary")
+
+    @admin.display(description="Actions")
+    def view_actions(self, obj):
+        return format_html(
+            '<div class="d-flex gap-2">'
+            '<a class="btn btn-sm btn-outline-primary" href="{}" title="View"><i class="fa-solid fa-eye"></i></a>'
+            '<a class="btn btn-sm btn-outline-secondary" href="{}" title="Edit"><i class="fa-solid fa-pen"></i></a>'
+            '</div>',
+            reverse("admin:legal_ai_legalchunk_change", args=[obj.pk]),
+            reverse("admin:legal_ai_legalchunk_change", args=[obj.pk]),
+        )
 
 
 @admin.register(EmbeddingConfig)

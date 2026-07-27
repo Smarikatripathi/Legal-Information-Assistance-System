@@ -1,26 +1,313 @@
-{% extends "admin/custom_base.html" %}
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrahead %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/custom_admin.css' %}">
+<style>
+.analytics-header {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.analytics-header h1 {
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.analytics-header p {
+    color: #cbd5e1;
+    margin-bottom: 0;
+}
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.kpi-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.kpi-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.kpi-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.kpi-icon-primary {
+    background-color: rgba(37, 99, 235, 0.1);
+    color: #2563eb;
+}
+
+.kpi-icon-success {
+    background-color: rgba(22, 163, 74, 0.1);
+    color: #16a34a;
+}
+
+.kpi-icon-warning {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.kpi-icon-info {
+    background-color: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+}
+
+.kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.kpi-label {
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.secondary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.info-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+}
+
+.info-card h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    color: #64748b;
+    font-size: 0.875rem;
+}
+
+.info-value {
+    color: #1e293b;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.stat-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.stat-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stat-list li:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    color: #64748b;
+    font-size: 0.875rem;
+}
+
+.stat-count {
+    background-color: #f1f5f9;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.actions-bar {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+</style>
+{% endblock %}
+
+{% block sidebar %}{% endblock %}
+
 {% block content %}
-<div class="legal-dashboard-shell">
-  <h1 class="mb-3">RAG Analytics Dashboard</h1>
-  <div class="row g-3 mb-4">
-    <div class="col-md-3"><div class="legal-kpi-card"><div class="label">Documents</div><div class="value">{{ stats.total_documents }}</div></div></div>
-    <div class="col-md-3"><div class="legal-kpi-card"><div class="label">Chunks</div><div class="value">{{ stats.total_chunks }}</div></div></div>
-    <div class="col-md-3"><div class="legal-kpi-card"><div class="label">Vectors</div><div class="value">{{ stats.total_embeddings }}</div></div></div>
-    <div class="col-md-3"><div class="legal-kpi-card"><div class="label">Queries</div><div class="value">{{ stats.total_queries }}</div></div></div>
-  </div>
-  <div class="row g-3">
-    <div class="col-lg-6">
-      <div class="card p-3">
-        <h5>Documents by Type</h5>
-        <ul class="mb-0">{% for row in stats.documents_by_type %}<li>{{ row.document_type }}: {{ row.count }}</li>{% empty %}<li>No data yet.</li>{% endfor %}</ul>
-      </div>
+<div class="container-fluid">
+    <div class="analytics-header">
+        <h1>RAG Analytics Dashboard</h1>
+        <p>Monitor your legal AI system performance and retrieval quality</p>
     </div>
-    <div class="col-lg-6">
-      <div class="card p-3">
-        <h5>Top Documents by Chunks</h5>
-        <ul class="mb-0">{% for row in stats.top_documents %}<li>{{ row.doc__title }}: {{ row.count }}</li>{% empty %}<li>No data yet.</li>{% endfor %}</ul>
-      </div>
+
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-primary">
+                <i class="fas fa-file-contract"></i>
+            </div>
+            <div class="kpi-value">{{ stats.total_documents }}</div>
+            <div class="kpi-label">Total Documents</div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-success">
+                <i class="fas fa-layer-group"></i>
+            </div>
+            <div class="kpi-value">{{ stats.total_chunks }}</div>
+            <div class="kpi-label">Total Chunks</div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-info">
+                <i class="fas fa-vector-square"></i>
+            </div>
+            <div class="kpi-value">{{ stats.total_embeddings }}</div>
+            <div class="kpi-label">Vector Embeddings</div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-warning">
+                <i class="fas fa-magnifying-glass"></i>
+            </div>
+            <div class="kpi-value">{{ stats.total_queries }}</div>
+            <div class="kpi-label">Total Queries</div>
+        </div>
     </div>
-  </div>
+
+    <div class="secondary-grid">
+        <div class="info-card">
+            <h3><i class="fas fa-chart-bar me-2"></i>Performance Metrics</h3>
+            <div class="info-item">
+                <span class="info-label">Average Confidence</span>
+                <span class="info-value">{{ stats.avg_confidence|floatformat:3 }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Average Response Time</span>
+                <span class="info-value">{{ stats.avg_response_time|floatformat:0 }} ms</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Total Conversations</span>
+                <span class="info-value">{{ stats.total_conversations }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Knowledge Gaps</span>
+                <span class="info-value">{{ stats.total_knowledge_gaps }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Unresolved Gaps</span>
+                <span class="info-value">{{ stats.unresolved_knowledge_gaps }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Pending Clarifications</span>
+                <span class="info-value">{{ stats.pending_clarifications }}</span>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <h3><i class="fas fa-cog me-2"></i>System Configuration</h3>
+            <div class="info-item">
+                <span class="info-label">Embedding Model</span>
+                <span class="info-value">{{ stats.embedding_model }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Vector Dimension</span>
+                <span class="info-value">{{ stats.embedding_dimension }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">FAISS Status</span>
+                <span class="info-value">
+                    {% if stats.faiss_status == 'ready' %}
+                        <span class="badge bg-success">Ready</span>
+                    {% else %}
+                        <span class="badge bg-warning">{{ stats.faiss_status }}</span>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Last Rebuild</span>
+                <span class="info-value">{{ stats.last_rebuild }}</span>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <h3><i class="fas fa-folder-open me-2"></i>Documents by Type</h3>
+            <ul class="stat-list">
+                {% for row in stats.documents_by_type %}
+                <li>
+                    <span class="stat-label">{{ row.document_type|title }}</span>
+                    <span class="stat-count">{{ row.count }}</span>
+                </li>
+                {% empty %}
+                <li>
+                    <span class="stat-label">No documents yet</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="actions-bar">
+        <h3 class="me-3 mb-0"><i class="fas fa-tools me-2"></i>Quick Actions</h3>
+        <a href="{% url 'admin:retrieval-debugger' %}" class="btn btn-primary">
+            <i class="fas fa-magnifying-glass-chart me-1"></i> Open Retrieval Debugger
+        </a>
+        <a href="{% url 'admin:ingestion-dashboard' %}" class="btn btn-success">
+            <i class="fas fa-gears me-1"></i> Ingestion Dashboard
+        </a>
+        <a href="{% url 'admin:legal_ai_legaldocument_changelist' %}" class="btn btn-outline-primary">
+            <i class="fas fa-file-contract me-1"></i> Manage Documents
+        </a>
+        <a href="{% url 'admin:legal_ai_knowledgegap_changelist' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-circle-question me-1"></i> Knowledge Gaps
+        </a>
+    </div>
 </div>
 {% endblock %}

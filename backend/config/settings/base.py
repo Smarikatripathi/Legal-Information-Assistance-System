@@ -410,9 +410,9 @@ JAZZMIN_SETTINGS = {
     "site_title": "Legal Information Admin",
     "site_header": "Legal Information Assistance System",
     "site_brand": "Legal Assist",
-    "site_logo": "admin/img/legal-assist-logo.svg",
-    "login_logo": "admin/img/legal-assist-logo.svg",
-    "site_icon": "admin/img/legal-assist-logo.svg",
+    "site_logo": "admin/img/legal-assist-logo.jpeg",
+    "login_logo": "admin/img/legal-assist-logo.jpeg",
+    "site_icon": "admin/img/legal-assist-logo.jpeg",
     "site_logo_classes": "rounded-3 shadow-sm",
     "welcome_sign": "Welcome to the Legal Information Assistance System admin",
     "copyright": "",
@@ -465,10 +465,6 @@ JAZZMIN_SETTINGS = {
     },
     "custom_css": "admin/css/custom_admin.css",
     "custom_js": "admin/js/custom_admin.js",
-    "custom_templates": {
-        "base": "admin/custom_base.html",
-        "index": "admin/custom_index.html",
-    },
     "topmenu_links": [
         {"name": "Dashboard", "url": "admin:index", "permissions": ["auth.view_user"]},
         {"name": "Documents", "url": "admin:legal_ai_legaldocument_changelist", "permissions": ["legal_ai.view_legaldocument"]},
