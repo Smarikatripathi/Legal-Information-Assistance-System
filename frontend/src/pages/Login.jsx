@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Scale } from "lucide-react";
+import { Scale, Eye, EyeOff } from "lucide-react";
 import { loginFetch } from "../services/authService";
 import { toast } from "react-toastify";
 
@@ -13,6 +13,7 @@ const Login = () => {
   });
 
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setForm({
@@ -31,12 +32,14 @@ const Login = () => {
       toast.success("Welcome back!");
       navigate("/dashboard");
     } catch (err) {
-      setError(err.response?.data?.detail || "Login failed. Please try again.");
+      setError(
+        err.response?.data?.detail || "Login failed. Please try again."
+      );
     }
   };
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-50 px-6">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-50 px-4 py-8 sm:py-10">
       {/* Background */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-[#084FF4]/10 blur-3xl" />
@@ -44,18 +47,22 @@ const Login = () => {
       </div>
 
       <div className="relative w-full max-w-md">
-        <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-xl shadow-slate-200/50">
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xl shadow-slate-200/50 sm:p-6 md:p-8">
           {/* Logo */}
           <div className="mb-8 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#C30A1C]/10">
-              <Scale className="h-8 w-8 text-[#C30A1C]" />
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#C30A1C]/10 sm:h-16 sm:w-16">
+              <Scale className="h-7 w-7 text-[#C30A1C] sm:h-8 sm:w-8" />
             </div>
 
-            <h1 className="mt-5 text-3xl font-bold text-slate-900">Welcome</h1>
+            <h1 className="mt-5 text-2xl font-bold text-slate-900 sm:text-3xl">
+              Welcome
+            </h1>
 
-            <p className="mt-2 text-slate-500">
+            <p className="mt-2 text-sm text-slate-500">
               Sign in to continue to{" "}
-              <span className="font-semibold text-[#084FF4]">Legal AI</span>
+              <span className="font-semibold text-[#084FF4]">
+                Legal AI
+              </span>
             </p>
           </div>
 
@@ -100,16 +107,33 @@ const Login = () => {
                 </Link>
               </div>
 
-              <input
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                className="input"
-                minLength={6}
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  className="input pr-12"
+                  minLength={6}
+                  required
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-3 flex items-center text-slate-500 transition hover:text-[#084FF4]"
+                  aria-label={
+                    showPassword ? "Hide password" : "Show password"
+                  }
+                >
+                  {showPassword ? (
+                    <EyeOff size={20} />
+                  ) : (
+                    <Eye size={20} />
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Login Button */}
@@ -119,8 +143,10 @@ const Login = () => {
                 w-full
                 rounded-xl
                 bg-[#084FF4]
-                py-3.5
-                text-base
+                py-3
+                sm:py-3.5
+                text-sm
+                sm:text-base
                 font-semibold
                 text-white
                 transition-all
