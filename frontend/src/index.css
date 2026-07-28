@@ -115,19 +115,10 @@
     box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
   }
 
+  
   .input {
-    width: 100%;
-
-    padding: 0.9rem 1rem;
-
-    border: 1px solid var(--color-border);
-
-    border-radius: 0.875rem;
-
-    background: white;
-
-    transition: 0.2s ease;
-  }
+  @apply w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#084FF4] focus:ring-4 focus:ring-[#084FF4]/10;
+}
 
   .input:focus {
     outline: none;

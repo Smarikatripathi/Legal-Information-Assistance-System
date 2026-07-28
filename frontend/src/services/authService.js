@@ -19,6 +19,40 @@ export const loginFetch = async (email, password) => {
   return res.data;
 };
 
+// ---------------- FORGOT PASSWORD ----------------
+
+export const forgotPassword = async (email) => {
+  const res = await axios.post(
+    `${API}/forgot-password/`,
+    {
+      email,
+    }
+  );
+
+  return res.data;
+};
+
+
+// ---------------- RESET PASSWORD ----------------
+
+export const resetPassword = async (
+  uid,
+  token,
+  new_password
+) => {
+
+  const res = await axios.post(
+    `${API}/reset-password/`,
+    {
+      uid,
+      token,
+      new_password,
+    }
+  );
+
+  return res.data;
+};
+
 // ---------------- SIGNUP ----------------
 export const signup = async (data) => {
   const res = await axios.post(`${API}/signup/`, data);
