@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Scale, FileText, Home, ShieldCheck } from "lucide-react";
+import { Scale, AlertTriangle } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
 
 import ChatInput from "./ChatInput";
@@ -12,8 +12,10 @@ const EMPTY_MESSAGES = [];
 
 const ChatArea = () => {
   const context = useOutletContext();
+
   const [input, setInput] = useState("");
   const bottomRef = useRef(null);
+
   const messages = context?.messages ?? EMPTY_MESSAGES;
 
   useEffect(() => {
@@ -25,17 +27,11 @@ const ChatArea = () => {
 
   if (!context) {
     return (
-      <div className="flex h-full items-center justify-center">
-        Loading...
-      </div>
+      <div className="flex h-full items-center justify-center">Loading...</div>
     );
   }
 
-  const {
-    setMessages,
-    conversationId,
-    setConversationId,
-  } = context;
+  const { setMessages, conversationId, setConversationId } = context;
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -48,6 +44,7 @@ const ChatArea = () => {
     setMessages((prev) => [...prev, userMessage]);
 
     const currentInput = input;
+
     setInput("");
 
     try {
@@ -75,62 +72,115 @@ const ChatArea = () => {
   };
 
   return (
-    <section className="flex h-full min-h-0 flex-col gradient-primary-bg">
+    <section className="flex h-full min-h-0 flex-col bg-linear-to-br from-blue-50 via-slate-100 to-state-100">
+      {/* CHAT SCROLL AREA */}
 
-      {/* SCROLL AREA */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
-
+      <div
+        className="
+          flex-1
+          min-h-0
+          overflow-y-auto
+        "
+      >
         {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full px-6 py-10">
-            <div className="max-w-5xl text-center animate-fade-in">
-
-              {/* Logo */}
-              <div className="mx-auto mb-8 h-24 w-24 rounded-3xl gradient-primary flex items-center justify-center">
-                <Scale size={48} className="text-white" />
+          <div className="flex h-full items-center justify-center px-6 py-10">
+            <div className="w-full max-w-3xl text-center animate-fade-in">
+              {/* Small Logo */}
+              <div className="mx-auto mb-8 flex h-17 w-17 items-center justify-center rounded-2xl bg-[#C30A1C] shadow-xl shadow-red-100">
+                <Scale size={30} className="text-white" />
               </div>
 
-              {/* Title */}
-              <h1 className="text-4xl md:text-6xl font-bold mb-5">
-                <span className="text-primary">Legal Information</span>
-                <br />
-                <span className="text-accent">Assistant</span>
+              <div className="mb-5">
+                <span className="inline-flex items-center rounded-full bg-blue-100 px-4 py-1 text-sm font-semibold text-[#084FF4]">
+                  Nepal Legal AI Assistant
+                </span>
+              </div>
+
+              {/* Heading */}
+              <h1 className="text-4xl font-bold text-slate-900">
+                Legal Information Assistant
               </h1>
 
-              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                Ask legal questions, understand laws, and connect with legal resources in Nepal.
+              <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">
+                Ask questions about Nepal's laws, legal rights, court
+                procedures, property, employment, contracts and other legal
+                matters.
               </p>
 
-              {/* Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-12">
-                <div className="dashboard-card p-6 text-left">
-                  <FileText className="text-primary mb-2" />
-                  <h3 className="font-semibold">Contract Law</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Agreements, obligations and disputes.
-                  </p>
-                </div>
-
-                <div className="dashboard-card p-6 text-left">
-                  <Home className="text-accent mb-2" />
-                  <h3 className="font-semibold">Property Rights</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Ownership and land law.
-                  </p>
-                </div>
-
-                <div className="dashboard-card p-6 text-left">
-                  <ShieldCheck className="text-primary mb-2" />
-                  <h3 className="font-semibold">Consumer Protection</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Rights, refunds and complaints.
-                  </p>
-                </div>
+              {/* Disclaimer */}
+              <div className="mt-8 rounded-xl border border-amber-200 bg-amber-50 px-6 py-4 text-center">
+                <p className="text-sm leading-6 text-amber-900">
+                  <strong>⚠ Disclaimer:</strong> AI responses may be inaccurate.
+                  Always verify important legal information with a qualified
+                  legal professional.
+                </p>
               </div>
 
+              {/* Examples */}
+              <div className="mt-10">
+                <h2 className="mb-5 text-sm font-semibold uppercase tracking-wider text-slate-500">
+                  Example Questions
+                </h2>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <button
+                    onClick={() =>
+                      setInput("How do I register land ownership in Nepal?")
+                    }
+                    className="rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:-translate-y-1 hover:border-[#084FF4] hover:shadow-md"
+                  >
+                    <p className="font-medium text-slate-800">
+                      How do I register land ownership in Nepal?
+                    </p>
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      setInput("What rights do tenants have under Nepal law?")
+                    }
+                    className="rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:-translate-y-1 hover:border-[#084FF4] hover:shadow-md"
+                  >
+                    <p className="font-medium text-slate-800">
+                      What rights do tenants have?
+                    </p>
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      setInput("How can I file a police complaint in Nepal?")
+                    }
+                    className="rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:-translate-y-1 hover:border-[#084FF4] hover:shadow-md"
+                  >
+                    <p className="font-medium text-slate-800">
+                      How do I file a police complaint?
+                    </p>
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      setInput("What is the divorce procedure in Nepal?")
+                    }
+                    className="rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:-translate-y-1 hover:border-[#084FF4] hover:shadow-md"
+                  >
+                    <p className="font-medium text-slate-800">
+                      What is the divorce procedure?
+                    </p>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         ) : (
-          <div className="max-w-4xl mx-auto p-6 space-y-4">
+          <div
+            className="
+              mx-auto
+              w-full
+              max-w-4xl
+              space-y-4
+              p-4
+              md:p-6
+            "
+          >
             {messages.map((msg, index) => (
               <MessageBubble
                 key={index}
@@ -138,23 +188,34 @@ const ChatArea = () => {
                 content={msg.content}
               />
             ))}
+
             <div ref={bottomRef} />
           </div>
         )}
-
       </div>
 
-      {/* INPUT (ALWAYS VISIBLE) */}
-      <div className="shrink-0 border-t border-border p-4 bg-white/60">
-        <div className="max-w-4xl mx-auto w-full">
-          <ChatInput
-            value={input}
-            onChange={setInput}
-            onSend={handleSend}
-          />
+      {/* INPUT */}
+
+      <div
+        className="
+          shrink-0
+          border-t
+          border-border
+          bg-white/80
+          p-3
+          md:p-4
+        "
+      >
+        <div
+          className="
+            mx-auto
+            w-full
+            max-w-4xl
+          "
+        >
+          <ChatInput value={input} onChange={setInput} onSend={handleSend} />
         </div>
       </div>
-
     </section>
   );
 };

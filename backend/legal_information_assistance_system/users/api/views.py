@@ -18,7 +18,7 @@ from legal_information_assistance_system.users.services import (
     change_user_password,
     get_tokens_for_user,
     request_password_reset,
-    reset_user_password,
+   
 )
 
 from .serializers import (
@@ -27,7 +27,7 @@ from .serializers import (
     LoginSerializer,
     LogoutSerializer,
     ProfileUpdateSerializer,
-    ResetPasswordSerializer,
+  
     SignupSerializer,
     UserSerializer,
 )
@@ -122,22 +122,6 @@ class ForgotPasswordView(APIView):
             status=status.HTTP_200_OK,
         )
 
-
-class ResetPasswordView(APIView):
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        serializer = ResetPasswordSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        try:
-            reset_user_password(
-                uid=serializer.validated_data["uid"],
-                token=serializer.validated_data["token"],
-                new_password=serializer.validated_data["new_password"],
-            )
-        except DjangoValidationError as exc:
-            return Response({"detail": exc.messages}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({"detail": "Password reset successful."})
 
 
 class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericViewSet):
