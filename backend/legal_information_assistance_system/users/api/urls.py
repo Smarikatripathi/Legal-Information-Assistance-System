@@ -8,7 +8,7 @@ from .views import (
     LoginView,
     LogoutView,
     ProfileUpdateView,
-    ResetPasswordView,
+  
     SignupView,
     TokenRefreshAPIView,
 )
@@ -21,8 +21,6 @@ auth_urlpatterns = [
     path("change-password/", ChangePasswordView.as_view(), name="change-password"),
     path("profile/", ProfileUpdateView.as_view(), name="profile"),
     path("forgot-password/", ForgotPasswordView.as_view(), name="forgot-password"),
-    path("reset-password/", ResetPasswordView.as_view(), name="reset-password"),
-
     path("lawyers/",LawyerListAPIView.as_view(), name="lawyer-list",),
     path("lawyers/<int:pk>/",LawyerDetailAPIView.as_view(), name="lawyer-detail",),
 

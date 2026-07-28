@@ -33,25 +33,7 @@ export const forgotPassword = async (email) => {
 };
 
 
-// ---------------- RESET PASSWORD ----------------
 
-export const resetPassword = async (
-  uid,
-  token,
-  new_password
-) => {
-
-  const res = await axios.post(
-    `${API}/reset-password/`,
-    {
-      uid,
-      token,
-      new_password,
-    }
-  );
-
-  return res.data;
-};
 
 // ---------------- SIGNUP ----------------
 export const signup = async (data) => {
