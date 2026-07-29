@@ -31,7 +31,7 @@ const ChatArea = () => {
     );
   }
 
-  const { setMessages, conversationId, setConversationId } = context;
+  const { setMessages, conversationId, setConversationId, loadConversations } = context;
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -58,8 +58,11 @@ const ChatArea = () => {
       setMessages((prev) => [...prev, assistantMessage]);
 
       if (response.conversation_id) {
-        setConversationId(response.conversation_id);
-      }
+  setConversationId(response.conversation_id);
+
+  // refresh sidebar history
+  loadConversations();
+}
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -92,14 +95,9 @@ const ChatArea = () => {
 
               <div className="mb-5">
                 <span className="inline-flex items-center rounded-full bg-blue-100 px-4 py-1 text-sm font-semibold text-[#084FF4]">
-                  Nepal Legal AI Assistant
+                   Welcome to Legal Assist
                 </span>
               </div>
-
-              {/* Heading */}
-              <h1 className="text-4xl font-bold text-slate-900">
-                Legal Information Assistant
-              </h1>
 
               <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">
                 Ask questions about Nepal's laws, legal rights, court
@@ -200,8 +198,8 @@ const ChatArea = () => {
         className="
           shrink-0
           border-t
-          border-border
-          bg-white/80
+          border-slate-400/40
+          bg-gray-300
           p-3
           md:p-4
         "

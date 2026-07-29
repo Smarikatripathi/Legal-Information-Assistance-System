@@ -20,7 +20,6 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-       
 
         {/* Protected Routes */}
         <Route
@@ -41,16 +40,16 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-        </Route>
 
-        <Route
-          path="/lawyers"
-          element={
-            <ProtectedRoute>
-              <Lawyers />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="lawyers"
+            element={
+              <ProtectedRoute>
+                <Lawyers />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
       </Routes>
     </BrowserRouter>
   );
