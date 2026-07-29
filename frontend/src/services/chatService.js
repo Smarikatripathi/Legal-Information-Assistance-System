@@ -2,21 +2,69 @@ import axios from "axios";
 
 const API = "http://localhost:8000/api";
 
-export const sendMessage = async (query , conversationId = null)=>{
-const token = localStorage.getItem("access");
+const getAuthConfig = () => {
+  const token = localStorage.getItem("access");
 
-const res = await axios.post(
+  return {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+};
+
+/* ------------------------- */
+/* Send Message              */
+/* ------------------------- */
+
+export const sendMessage = async (
+  query,
+  conversationId = null
+) => {
+  const res = await axios.post(
     `${API}/query/`,
     {
-        query,
-        conversation_id : conversationId,
+      query,
+      conversation_id: conversationId,
     },
-    {
-        headers:{
-            Authorization : `Bearer ${token}`
-        },
-    }
-);
+    getAuthConfig()
+  );
 
-return res.data;
-}
+  return res.data;
+};
+
+/* ------------------------- */
+/* Conversation History      */
+/* ------------------------- */
+
+export const getConversations = async () => {
+  const res = await axios.get(
+    `${API}/conversations/`,
+    getAuthConfig()
+  );
+
+  return res.data;
+};
+
+/* ------------------------- */
+/* Single Conversation       */
+/* ------------------------- */
+
+export const getConversation = async (conversationId) => {
+  const res = await axios.get(
+    `${API}/conversations/${conversationId}/`,
+    getAuthConfig()
+  );
+
+  return res.data;
+};
+
+/* ------------------------- */
+/* Delete Conversation       */
+/* ------------------------- */
+
+export const deleteConversation = async (conversationId) => {
+  await axios.delete(
+    `${API}/conversations/${conversationId}/`,
+    getAuthConfig()
+  );
+};

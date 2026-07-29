@@ -10,6 +10,10 @@ const DashboardLayout = ({
   setMessages,
   conversationId,
   setConversationId,
+  conversations,
+  setConversations,
+  historyLoading,
+  loadConversations,
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [user, setUser] = useState(null);
@@ -48,17 +52,17 @@ const DashboardLayout = ({
               <Menu size={22} />
             </button>
 
-            <div className="hidden md:flex h-10 w-10 items-center justify-center rounded-xl bg-[#C30A1C]/10">
-              <Scale className="h-5 w-5 text-[#C30A1C]" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#C30A1C] shadow-sm">
+              <Scale className="h-5 w-5 text-white" />
             </div>
 
-            <div>
-              <h1 className="text-lg font-semibold text-slate-900">
-                Legal Information Assistant
+            <div className="leading-tight">
+              <h1 className="text-lg font-bold tracking-tight text-slate-900">
+                Legal Assist
               </h1>
 
-              <p className="text-sm text-slate-500">
-                Nepal Legal Support Platform
+              <p className="text-xs text-slate-500">
+                AI-Powered Legal Information Assistance System
               </p>
             </div>
           </div>
@@ -118,12 +122,17 @@ const DashboardLayout = ({
         <Sidebar
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
+
           messages={messages}
           setMessages={setMessages}
+
           conversationId={conversationId}
           setConversationId={setConversationId}
-        />
 
+          conversations={conversations}
+          historyLoading={historyLoading}
+          loadConversations={loadConversations}
+        />
         <main className="flex-1 min-w-0 overflow-hidden bg-slate-50">
           <Outlet
             context={{
@@ -135,6 +144,9 @@ const DashboardLayout = ({
 
               conversationId,
               setConversationId,
+
+              conversations,
+              loadConversations,
             }}
           />
         </main>

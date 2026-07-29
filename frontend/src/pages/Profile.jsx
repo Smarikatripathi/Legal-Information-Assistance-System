@@ -3,10 +3,7 @@ import { useOutletContext } from "react-router-dom";
 import { Lock, Mail, User, Save } from "lucide-react";
 import { toast } from "react-toastify";
 
-import {
-  updateProfile,
-  changePassword,
-} from "../services/authService";
+import { updateProfile, changePassword } from "../services/authService";
 
 const getErrorMessage = (error, fallback) => {
   const data = error.response?.data;
@@ -62,8 +59,7 @@ const Profile = () => {
     "U";
 
   const displayName =
-    `${profile.first_name} ${profile.last_name}`.trim() ||
-    profile.username;
+    `${profile.first_name} ${profile.last_name}`.trim() || profile.username;
 
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
@@ -94,12 +90,7 @@ const Profile = () => {
 
       toast.success("Profile updated successfully.");
     } catch (error) {
-      setProfileError(
-        getErrorMessage(
-          error,
-          "Failed to update profile."
-        )
-      );
+      setProfileError(getErrorMessage(error, "Failed to update profile."));
     } finally {
       setProfileLoading(false);
     }
@@ -114,7 +105,7 @@ const Profile = () => {
     try {
       await changePassword(
         passwordForm.currentPassword,
-        passwordForm.newPassword
+        passwordForm.newPassword,
       );
 
       setPasswordForm({
@@ -124,12 +115,7 @@ const Profile = () => {
 
       toast.success("Password updated successfully.");
     } catch (error) {
-      setPasswordError(
-        getErrorMessage(
-          error,
-          "Failed to update password."
-        )
-      );
+      setPasswordError(getErrorMessage(error, "Failed to update password."));
     } finally {
       setPasswordLoading(false);
     }
@@ -138,27 +124,18 @@ const Profile = () => {
   return (
     <div className="h-full overflow-y-auto bg-slate-50">
       <div className="mx-auto max-w-5xl px-5 py-8">
-
         {/* Profile Header */}
 
         <div className="mb-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-
           <div className="flex flex-col items-center text-center">
-
             <div className="mb-5 flex h-24 w-24 items-center justify-center rounded-full bg-[#084FF4] text-4xl font-bold text-white shadow-lg">
               {initial}
             </div>
 
-            <h1 className="text-3xl font-bold text-slate-900">
-              {displayName}
-            </h1>
+            <h1 className="text-3xl font-bold text-slate-900">{displayName}</h1>
 
-            <p className="mt-2 text-slate-500">
-              {profile.email}
-            </p>
-
+            <p className="mt-2 text-slate-500">{profile.email}</p>
           </div>
-
         </div>
 
         {/* Personal Information */}
@@ -167,15 +144,12 @@ const Profile = () => {
           onSubmit={handleProfileSubmit}
           className="mb-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm"
         >
-
           <div className="mb-8 flex items-center gap-3">
-
             <div className="rounded-xl bg-[#084FF4]/10 p-3">
               <User className="h-5 w-5 text-[#084FF4]" />
             </div>
 
             <div>
-
               <h2 className="text-xl font-semibold text-slate-900">
                 Personal Information
               </h2>
@@ -183,9 +157,7 @@ const Profile = () => {
               <p className="text-sm text-slate-500">
                 Update your account details.
               </p>
-
             </div>
-
           </div>
 
           {profileError && (
@@ -195,7 +167,6 @@ const Profile = () => {
           )}
 
           <div className="grid gap-5 md:grid-cols-2">
-
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-700">
                 First Name
@@ -229,6 +200,47 @@ const Profile = () => {
                   })
                 }
                 className="input"
+              />
+            </div>
+
+            {/* Username */}
+
+            <div className="md:col-span-2">
+              <label className="mb-2 block text-sm font-semibold text-slate-700">
+                Username
+              </label>
+
+              <input
+                type="text"
+                value={profile.username}
+                onChange={(e) =>
+                  setProfile({
+                    ...profile,
+                    username: e.target.value,
+                  })
+                }
+                className="input"
+              />
+            </div>
+
+            {/* Email */}
+
+            <div className="md:col-span-2">
+              <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <Mail size={16} />
+                Email Address
+              </label>
+
+              <input
+                type="email"
+                value={profile.email}
+                readOnly
+                className="
+                  input
+                  cursor-not-allowed
+                  bg-slate-100
+                  text-slate-500
+                "
               />
             </div>
 
@@ -281,7 +293,6 @@ const Profile = () => {
 
           </div>
 
-
           {/* Save Button */}
 
           <button
@@ -311,18 +322,13 @@ const Profile = () => {
           >
             <Save size={18} />
 
-            {profileLoading
-              ? "Saving..."
-              : "Save Changes"}
+            {profileLoading ? "Saving..." : "Save Changes"}
           </button>
 
 
         </form>
 
-
-
         {/* Security Section */}
-
 
         <form
           onSubmit={handlePasswordSubmit}
@@ -335,35 +341,21 @@ const Profile = () => {
             shadow-sm
           "
         >
-
           <div className="mb-8 flex items-center gap-3">
-
             <div className="rounded-xl bg-[#C30A1C]/10 p-3">
-
               <Lock className="h-5 w-5 text-[#C30A1C]" />
-
             </div>
 
-
             <div>
-
-              <h2 className="text-xl font-semibold text-slate-900">
-                Security
-              </h2>
+              <h2 className="text-xl font-semibold text-slate-900">Security</h2>
 
               <p className="text-sm text-slate-500">
                 Update your password and keep your account secure.
               </p>
-
             </div>
-
-
           </div>
 
-
-
           {passwordError && (
-
             <div
               className="
                 mb-6
@@ -386,14 +378,10 @@ const Profile = () => {
 
 
           <div className="space-y-5">
-
-
             {/* Current Password */}
 
             <div>
-
               <label className="mb-2 block text-sm font-semibold text-slate-700">
-
                 Current Password
 
               </label>
@@ -415,14 +403,10 @@ const Profile = () => {
 
             </div>
 
-
-
             {/* New Password */}
 
             <div>
-
               <label className="mb-2 block text-sm font-semibold text-slate-700">
-
                 New Password
 
               </label>
@@ -444,12 +428,7 @@ const Profile = () => {
               />
 
             </div>
-
-
-
           </div>
-
-
 
           <button
             type="submit"
@@ -472,14 +451,8 @@ const Profile = () => {
               disabled:opacity-60
             "
           >
-
-            {passwordLoading
-              ? "Updating..."
-              : "Update Password"}
-
+            {passwordLoading ? "Updating..." : "Update Password"}
           </button>
-
-
         </form>
 
 
