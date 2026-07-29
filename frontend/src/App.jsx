@@ -7,7 +7,7 @@ import Dashboard from "./pages/Dashboard";
 import Lawyers from "./pages/Lawyers";
 import Profile from "./pages/Profile";
 import ForgotPassword from "./pages/ForgotPassword";
-
+import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import ChatArea from "./components/chat/ChatArea";
 

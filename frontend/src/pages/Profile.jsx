@@ -243,6 +243,54 @@ const Profile = () => {
                 "
               />
             </div>
+
+                        {/* Username */}
+
+            <div className="md:col-span-2">
+
+              <label className="mb-2 block text-sm font-semibold text-slate-700">
+                Username
+              </label>
+
+              <input
+                type="text"
+                value={profile.username}
+                onChange={(e) =>
+                  setProfile({
+                    ...profile,
+                    username: e.target.value,
+                  })
+                }
+                className="input"
+              />
+
+            </div>
+
+
+            {/* Email */}
+
+            <div className="md:col-span-2">
+
+              <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <Mail size={16} />
+                Email Address
+              </label>
+
+              <input
+                type="email"
+                value={profile.email}
+                readOnly
+                className="
+                  input
+                  cursor-not-allowed
+                  bg-slate-100
+                  text-slate-500
+                "
+              />
+
+            </div>
+
+
           </div>
 
           {/* Save Button */}
@@ -276,6 +324,8 @@ const Profile = () => {
 
             {profileLoading ? "Saving..." : "Save Changes"}
           </button>
+
+
         </form>
 
         {/* Security Section */}
@@ -320,8 +370,12 @@ const Profile = () => {
               "
             >
               {passwordError}
+
             </div>
+
           )}
+
+
 
           <div className="space-y-5">
             {/* Current Password */}
@@ -329,7 +383,9 @@ const Profile = () => {
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-700">
                 Current Password
+
               </label>
+
 
               <input
                 type="password"
@@ -344,6 +400,7 @@ const Profile = () => {
                 className="input"
                 required
               />
+
             </div>
 
             {/* New Password */}
@@ -351,7 +408,9 @@ const Profile = () => {
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-700">
                 New Password
+
               </label>
+
 
               <input
                 type="password"
@@ -367,6 +426,7 @@ const Profile = () => {
                 minLength={8}
                 required
               />
+
             </div>
           </div>
 
@@ -394,9 +454,14 @@ const Profile = () => {
             {passwordLoading ? "Updating..." : "Update Password"}
           </button>
         </form>
+
+
+
       </div>
+
     </div>
   );
 };
+
 
 export default Profile;
