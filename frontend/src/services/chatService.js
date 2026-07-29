@@ -1,15 +1,5 @@
 import apiClient from "./apiClient";
 
-const getAuthConfig = () => {
-  const token = localStorage.getItem("access");
-
-  return {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
-};
-
 /* ------------------------- */
 /* Send Message              */
 /* ------------------------- */
@@ -18,13 +8,12 @@ export const sendMessage = async (
   query,
   conversationId = null
 ) => {
-  const res = await axios.post(
-    `${API}/query/`,
+  const res = await apiClient.post(
+    "/api/legal-ai/query/",
     {
       query,
       conversation_id: conversationId,
-    },
-    getAuthConfig()
+    }
   );
 
   return res.data;
@@ -35,11 +24,7 @@ export const sendMessage = async (
 /* ------------------------- */
 
 export const getConversations = async () => {
-  const res = await axios.get(
-    `${API}/conversations/`,
-    getAuthConfig()
-  );
-
+  const res = await apiClient.get("/api/conversations/");
   return res.data;
 };
 
@@ -48,11 +33,7 @@ export const getConversations = async () => {
 /* ------------------------- */
 
 export const getConversation = async (conversationId) => {
-  const res = await axios.get(
-    `${API}/conversations/${conversationId}/`,
-    getAuthConfig()
-  );
-
+  const res = await apiClient.get(`/api/conversations/${conversationId}/`);
   return res.data;
 };
 
@@ -61,8 +42,5 @@ export const getConversation = async (conversationId) => {
 /* ------------------------- */
 
 export const deleteConversation = async (conversationId) => {
-  await axios.delete(
-    `${API}/conversations/${conversationId}/`,
-    getAuthConfig()
-  );
+  await apiClient.delete(`/api/conversations/${conversationId}/`);
 };

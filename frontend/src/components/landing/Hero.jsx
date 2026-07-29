@@ -12,7 +12,7 @@ const Hero = () => {
       {/* Background */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-[#084FF4]/10 blur-3xl" />
-        <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-[#C30A1C]/10 blur-3xl" />
+        <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-[#2563EB]/10 blur-3xl" />
       </div>
       <div className="landing-container relative flex py-24 lg:min-h-[85vh] flex-col items-center justify-center gap-16 lg:flex-row">
         {/* Left */}
@@ -42,7 +42,7 @@ const Hero = () => {
           <div className="mt-10">
             <Link
               to="/signup"
-              className="inline-flex items-center gap-2 rounded-xl bg-[#C30A1C] px-8 py-4 text-lg font-semibold text-white transition-all duration-300 hover:bg-[#A10818] hover:shadow-xl hover:shadow-[#C30A1C]/25 active:scale-95"
+              className="inline-flex items-center gap-2 rounded-xl bg-[#2563EB] px-8 py-4 text-lg font-semibold text-white transition-all duration-300 hover:bg-[#1D4ED8] hover:shadow-xl hover:shadow-[#2563EB]/25 active:scale-95"
             >
               Get Started
               <ArrowRight size={20} />
@@ -58,7 +58,7 @@ const Hero = () => {
           className="flex flex-1 justify-center"
         >
           <div className="relative w-full max-w-xl">
-            <div className="absolute -inset-6 rounded-full bg-linear-to-br from-[#084FF4]/20 to-[#C30A1C]/20 blur-3xl" />
+            <div className="absolute -inset-6 rounded-full bg-linear-to-br from-[#084FF4]/20 to-[#2563EB]/20 blur-3xl" />
 
             <img
               src={heroImage}

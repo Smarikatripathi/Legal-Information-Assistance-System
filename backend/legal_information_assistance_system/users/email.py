@@ -8,10 +8,16 @@ from legal_information_assistance_system.users.models import User
 def send_password_reset_email(*, user: User, reset_link: str) -> None:
     subject = "Password Reset Request"
 
+    from django.conf import settings
+
+    # Use backend URL from settings for static files
+    backend_url = getattr(settings, 'BACKEND_URL', 'http://localhost:8000')
+
     context = {
         "user": user,
         "reset_link": reset_link,
         "site_name": settings.SITE_NAME,
+        "backend_url": backend_url,
     }
 
     text_body = render_to_string(

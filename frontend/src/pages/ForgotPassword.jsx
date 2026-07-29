@@ -35,14 +35,14 @@ const ForgotPassword = () => {
       {/* Background */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-40 -right-40 h-112 w-md rounded-full bg-[#084FF4]/10 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 h-112 w-md rounded-full bg-[#C30A1C]/10 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 h-112 w-md rounded-full bg-[#2563EB]/10 blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-md animate-fade-in">
         <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-2xl">
           {/* Logo */}
           <div className="mb-8 flex flex-col items-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#C30A1C] text-white shadow-lg">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#2563EB] text-white shadow-lg">
               <Scale size={30} />
             </div>
 

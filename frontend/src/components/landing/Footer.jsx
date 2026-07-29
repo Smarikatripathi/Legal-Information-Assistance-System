@@ -28,7 +28,7 @@ const Footer = () => {
                   items-center
                   justify-center
                   rounded-xl
-                  bg-[#C30A1C]
+                  bg-[#2563EB]
                 "
               >
                 <Scale size={22} />
@@ -38,6 +38,7 @@ const Footer = () => {
                 text-lg
                 font-bold
                 leading-tight
+                text-white
               ">
                 Legal Information
                 <br />
@@ -52,7 +53,7 @@ const Footer = () => {
               max-w-md
               text-sm
               leading-6
-              text-slate-400
+              text-white
             ">
               An AI-powered platform that helps users understand
               legal information through simple explanations,
@@ -66,26 +67,26 @@ const Footer = () => {
           {/* Navigation */}
           <div>
 
-            <h4 className="mb-4 font-semibold">
+            <h4 className="mb-4 font-semibold text-white">
               Navigation
             </h4>
 
-            <ul className="space-y-2.5 text-sm text-slate-400">
+            <ul className="space-y-2.5 text-sm text-white">
 
               <li>
-                <a href="#home" className="hover:text-white transition">
+                <a href="#home" className="hover:text-[#084FF4] transition">
                   Home
                 </a>
               </li>
 
               <li>
-                <a href="#features" className="hover:text-white transition">
+                <a href="#features" className="hover:text-[#084FF4] transition">
                   Features
                 </a>
               </li>
 
               <li>
-                <a href="#how-it-works" className="hover:text-white transition">
+                <a href="#how-it-works" className="hover:text-[#084FF4] transition">
                   How It Works
                 </a>
               </li>
@@ -99,16 +100,16 @@ const Footer = () => {
           {/* Contact */}
           <div>
 
-            <h4 className="mb-4 font-semibold">
+            <h4 className="mb-4 font-semibold text-white">
               Contact
             </h4>
 
-            <ul className="space-y-3 text-sm text-slate-400">
+            <ul className="space-y-3 text-sm text-white">
 
               <li>
                 <Link
                   to="/login"
-                  className="hover:text-white transition"
+                  className="hover:text-[#084FF4] transition"
                 >
                   Login
                 </Link>
@@ -117,7 +118,7 @@ const Footer = () => {
               <li>
                 <Link
                   to="/signup"
-                  className="hover:text-white transition"
+                  className="hover:text-[#084FF4] transition"
                 >
                   Get Started
                 </Link>
@@ -138,7 +139,7 @@ const Footer = () => {
               <li className="flex items-center gap-3">
                 <Phone
                   size={15}
-                  className="text-[#C30A1C]"
+                  className="text-[#084FF4]"
                 />
                 <span>
                   +977 9812345678

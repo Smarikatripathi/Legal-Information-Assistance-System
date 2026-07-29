@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
-import { Search, MapPin, BriefcaseBusiness, Phone, Mail } from "lucide-react";
+import { Search, MapPin, BriefcaseBusiness, Mail, User } from "lucide-react";
+import { useNavigate, useOutletContext } from "react-router-dom";
 
 import { getLawyers } from "../services/lawyerService";
+import Breadcrumb from "../components/ui/Breadcrumb";
 
 const Lawyers = () => {
+  const navigate = useNavigate();
+  const { filters = { location: "", practiceAreas: [], experience: "All" }, setFilters = () => {}, availableLocations = [], setAvailableLocations = () => {} } = useOutletContext();
   const [lawyers, setLawyers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,26 +31,66 @@ const Lawyers = () => {
     }
   };
 
+  // Update available locations in parent context when lawyers load
+  useEffect(() => {
+    if (setAvailableLocations && lawyers.length > 0) {
+      const locations = [...new Set(lawyers.map((lawyer) => lawyer.city))];
+      setAvailableLocations(locations);
+    }
+  }, [lawyers, setAvailableLocations]);
 
-  const filteredLawyers = lawyers.filter((lawyer) =>
-    lawyer.full_name
-      .toLowerCase()
-      .includes(search.toLowerCase())
-  );
+  // Filter lawyers based on search and sidebar filters
+  const filteredLawyers = lawyers.filter((lawyer) => {
+    // Search filter
+    const matchesSearch =
+      lawyer.full_name.toLowerCase().includes(search.toLowerCase()) ||
+      lawyer.specialization.toLowerCase().includes(search.toLowerCase()) ||
+      lawyer.city.toLowerCase().includes(search.toLowerCase());
+
+    // Location filter
+    const matchesLocation = filters.location === "" || lawyer.city === filters.location;
+
+    // Practice area filter (check if lawyer's specialization matches any selected practice area)
+    const matchesPracticeArea =
+      filters.practiceAreas.length === 0 ||
+      filters.practiceAreas.some((area) =>
+        lawyer.specialization.toLowerCase().includes(area.toLowerCase())
+      );
+
+    // Experience filter
+    let matchesExperience = true;
+    if (filters.experience === "0-2 years") {
+      matchesExperience = lawyer.years_of_experience <= 2;
+    } else if (filters.experience === "3-5 years") {
+      matchesExperience = lawyer.years_of_experience >= 3 && lawyer.years_of_experience <= 5;
+    } else if (filters.experience === "5+ years") {
+      matchesExperience = lawyer.years_of_experience > 5;
+    }
+
+    return matchesSearch && matchesLocation && matchesPracticeArea && matchesExperience;
+  });
 
 
   return (
-    <div className="h-full overflow-y-auto p-6 md:p-8">
+    <div className="flex h-full flex-col w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6 overflow-y-auto">
+
+      {/* Breadcrumb */}
+      <Breadcrumb
+        items={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Lawyers Directory" },
+        ]}
+      />
 
       {/* Header */}
 
-      <div className="mb-8">
+      <div className="mb-6">
 
-        <h1 className="text-3xl font-bold text-slate-900">
+        <h1 className="text-2xl font-bold text-slate-900">
           Lawyers Directory
         </h1>
 
-        <p className="mt-2 text-slate-500">
+        <p className="mt-1 text-sm text-slate-500">
           Find verified legal professionals for your legal needs.
         </p>
 
@@ -55,7 +99,7 @@ const Lawyers = () => {
 
       {/* Search */}
 
-      <div className="mb-8">
+      <div className="mb-6">
 
         <div className="
           flex
@@ -78,7 +122,7 @@ const Lawyers = () => {
           <input
             value={search}
             onChange={(e)=>setSearch(e.target.value)}
-            placeholder="Search lawyer by name..."
+            placeholder="Search by name, specialization, or location..."
             className="
               w-full
               outline-none
@@ -133,8 +177,9 @@ const Lawyers = () => {
 
         <div className="
           grid
-          gap-6
-          sm:grid-cols-2
+          gap-4
+          grid-cols-1
+          md:grid-cols-2
           xl:grid-cols-3
         ">
 
@@ -143,22 +188,26 @@ const Lawyers = () => {
             <div
               key={lawyer.id}
               className="
-                rounded-2xl
+                flex
+                flex-col
+                rounded-xl
                 border
                 border-slate-200
                 bg-white
-                p-6
+                p-4
                 shadow-sm
-                transition
+                transition-all
+                duration-300
                 hover:-translate-y-1
-                hover:shadow-lg
+                hover:shadow-xl
+                hover:border-slate-300
               "
             >
 
 
               {/* Profile */}
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 shrink-0">
 
                 {lawyer.profile_image ? (
 
@@ -166,10 +215,12 @@ const Lawyers = () => {
                     src={lawyer.profile_image}
                     alt={lawyer.full_name}
                     className="
-                      h-16
-                      w-16
+                      h-12
+                      w-12
+                      shrink-0
                       rounded-full
                       object-cover
+                      shadow-md
                     "
                   />
 
@@ -177,15 +228,17 @@ const Lawyers = () => {
 
                   <div className="
                     flex
-                    h-16
-                    w-16
+                    h-12
+                    w-12
+                    shrink-0
                     items-center
                     justify-center
                     rounded-full
                     bg-[#C30A1C]
-                    text-xl
+                    text-lg
                     font-bold
                     text-white
+                    shadow-md
                   ">
                     {lawyer.full_name.charAt(0)}
                   </div>
@@ -193,19 +246,22 @@ const Lawyers = () => {
                 )}
 
 
-                <div>
+                <div className="min-w-0">
 
                   <h2 className="
                     font-semibold
+                    text-sm
                     text-slate-900
+                    truncate
                   ">
                     {lawyer.full_name}
                   </h2>
 
 
                   <p className="
-                    text-sm
+                    text-xs
                     text-slate-500
+                    truncate
                   ">
                     {lawyer.specialization}
                   </p>
@@ -218,12 +274,12 @@ const Lawyers = () => {
 
               {/* Info */}
 
-              <div className="mt-5 space-y-3 text-sm text-slate-600">
+              <div className="mt-4 space-y-2 text-xs text-slate-600 shrink-0">
 
 
                 <div className="flex gap-2">
 
-                  <BriefcaseBusiness size={17}/>
+                  <BriefcaseBusiness size={14} className="shrink-0"/>
 
                   <span>
                     {lawyer.years_of_experience} years experience
@@ -235,7 +291,7 @@ const Lawyers = () => {
 
                 <div className="flex gap-2">
 
-                  <MapPin size={17}/>
+                  <MapPin size={14} className="shrink-0"/>
 
                   <span>
                     {lawyer.city}
@@ -245,31 +301,20 @@ const Lawyers = () => {
 
 
 
-                {lawyer.phone && (
-
-                  <div className="flex gap-2">
-
-                    <Phone size={17}/>
-
-                    <span>
-                      {lawyer.phone}
-                    </span>
-
-                  </div>
-
-                )}
-
-
-
                 {lawyer.email && (
 
                   <div className="flex gap-2">
 
-                    <Mail size={17}/>
+                    <Mail size={14} className="shrink-0"/>
 
-                    <span className="truncate">
+                    <a
+                      href={`https://mail.google.com/mail/?view=cm&fs=1&to=${lawyer.email}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="truncate cursor-pointer hover:text-[#084FF4] hover:underline transition-colors"
+                    >
                       {lawyer.email}
-                    </span>
+                    </a>
 
                   </div>
 
@@ -284,16 +329,90 @@ const Lawyers = () => {
               {lawyer.bio && (
 
                 <p className="
-                  mt-5
-                  line-clamp-3
-                  text-sm
-                  leading-6
+                  mt-4
+                  line-clamp-2
+                  text-xs
+                  leading-5
                   text-slate-500
+                  flex-1
                 ">
                   {lawyer.bio}
                 </p>
 
               )}
+
+
+              {/* Action Buttons */}
+              <div className="mt-4 flex gap-2 shrink-0">
+                {lawyer.email && (
+                  <a
+                    href={`https://mail.google.com/mail/?view=cm&fs=1&to=${lawyer.email}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="
+                      flex-1
+                      flex
+                      items-center
+                      justify-center
+                      gap-2
+                      rounded-lg
+                      border
+                      border-slate-200
+                      bg-white
+                      px-3
+                      py-2
+                      text-xs
+                      font-medium
+                      text-slate-700
+                      cursor-pointer
+                      transition-all
+                      duration-200
+                      hover:border-[#084FF4]
+                      hover:bg-[#084FF4]
+                      hover:text-white
+                      focus:outline-none
+                      focus:ring-2
+                      focus:ring-[#084FF4]
+                      focus:ring-offset-2
+                    "
+                  >
+                    <Mail size={14} />
+                    Email
+                  </a>
+                )}
+
+                <button
+                  onClick={() => navigate(`/dashboard/lawyers/${lawyer.id}`)}
+                  className="
+                    flex-1
+                    flex
+                    items-center
+                    justify-center
+                    gap-2
+                    rounded-lg
+                    border
+                    border-slate-200
+                    bg-white
+                    px-3
+                    py-2
+                    text-xs
+                    font-medium
+                    text-slate-700
+                    transition-all
+                    duration-200
+                    hover:border-[#C30A1C]
+                    hover:bg-[#C30A1C]
+                    hover:text-white
+                    focus:outline-none
+                    focus:ring-2
+                    focus:ring-[#C30A1C]
+                    focus:ring-offset-2
+                  "
+                >
+                  <User size={14} />
+                  View Profile
+                </button>
+              </div>
 
 
             </div>
@@ -308,6 +427,5 @@ const Lawyers = () => {
     </div>
   );
 };
-
 
 export default Lawyers;

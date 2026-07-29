@@ -35,7 +35,7 @@ const Navbar = () => {
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#C30A1C]">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#2563EB]">
             <Scale className="h-6 w-6 text-white" />
           </div>
 
@@ -97,14 +97,14 @@ const Navbar = () => {
             to="/signup"
             className="
               rounded-xl
-              bg-[#C30A1C]
+              bg-[#2563EB]
               px-5
               py-2.5
               font-medium
               text-white
               transition-all
               duration-200
-              hover:bg-[#A10818]
+              hover:bg-[#1D4ED8]
             "
           >
             Get Started
@@ -183,14 +183,14 @@ const Navbar = () => {
                   onClick={() => setOpen(false)}
                   className="
                     rounded-xl
-                    bg-[#C30A1C]
+                    bg-[#2563EB]
                     py-3
                     text-center
                     font-semibold
                     text-white
                     transition-all
                     duration-200
-                    hover:bg-[#A10818]
+                    hover:bg-[#1D4ED8]
                   "
                 >
                   Get Started

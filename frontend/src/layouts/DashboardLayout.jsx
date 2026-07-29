@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { Menu, Scale } from "lucide-react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 
 import Sidebar from "../components/navigation/Sidebar";
+import DashboardNavbar from "../components/navigation/DashboardNavbar";
 import { getProfile } from "../services/authService";
 
 const DashboardLayout = ({
@@ -15,10 +15,93 @@ const DashboardLayout = ({
   historyLoading,
   loadConversations,
 }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Three-state sidebar: 'expanded' | 'collapsed' | 'hidden'
+  const [sidebarState, setSidebarState] = useState(() => {
+    const saved = localStorage.getItem("sidebarState");
+    return saved || 'expanded';
+  });
+  
+  // Resizable sidebar width (for expanded state)
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    const saved = localStorage.getItem("sidebarWidth");
+    return saved ? parseInt(saved) : 280;
+  });
+  
+  const [isMobile, setIsMobile] = useState(false);
+  
   const [user, setUser] = useState(null);
-
+  const location = useLocation();
   const navigate = useNavigate();
+
+  // Track mobile/desktop state
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Filter state for Lawyers page
+  const [filters, setFilters] = useState({
+    location: "",
+    practiceAreas: [],
+    experience: "All",
+  });
+
+  const [availableLocations, setAvailableLocations] = useState([]);
+
+  const currentPage = location.pathname === "/dashboard"
+    ? "dashboard"
+    : location.pathname.startsWith("/dashboard/lawyers")
+    ? "lawyers"
+    : location.pathname === "/dashboard/profile"
+    ? "profile"
+    : "dashboard";
+
+  // Persist sidebar state to localStorage
+  useEffect(() => {
+    localStorage.setItem("sidebarState", sidebarState);
+  }, [sidebarState]);
+
+  // Persist sidebar width to localStorage
+  useEffect(() => {
+    localStorage.setItem("sidebarWidth", sidebarWidth.toString());
+  }, [sidebarWidth]);
+
+  // Close sidebar drawer when navigating on mobile
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarState('hidden');
+    }
+  }, [location.pathname, isMobile]);
+
+  // Handle hamburger button click
+  const handleMenuClick = () => {
+    if (isMobile) {
+      // Mobile: toggle drawer
+      setSidebarState(prev => prev === 'hidden' ? 'expanded' : 'hidden');
+    } else {
+      // Desktop: toggle collapse/expand
+      setSidebarState(prev => prev === 'expanded' ? 'collapsed' : 'expanded');
+    }
+  };
+
+  // Prevent body scroll when sidebar drawer is open on mobile
+  useEffect(() => {
+    const isDrawerOpen = isMobile && sidebarState !== 'hidden';
+    
+    if (isDrawerOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [sidebarState, isMobile]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -33,107 +116,39 @@ const DashboardLayout = ({
     fetchProfile();
   }, []);
 
-  const initial =
-    user?.first_name?.charAt(0)?.toUpperCase() ||
-    user?.username?.charAt(0)?.toUpperCase() ||
-    "U";
-
   return (
-    <div className="h-screen overflow-hidden bg-slate-50">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 h-16 border-b border-slate-200 bg-white/95 backdrop-blur-md">
-        <div className="flex h-full items-center justify-between px-4 md:px-6">
-          {/* Left */}
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="rounded-lg p-2 transition hover:bg-slate-100 lg:hidden"
-            >
-              <Menu size={22} />
-            </button>
+    <div className="flex h-[100dvh] overflow-hidden bg-slate-50">
+      {/* Sidebar - z-index: 30 */}
+      <Sidebar
+        sidebarState={sidebarState}
+        setSidebarState={setSidebarState}
+        sidebarWidth={sidebarWidth}
+        setSidebarWidth={setSidebarWidth}
 
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#C30A1C] shadow-sm">
-              <Scale className="h-5 w-5 text-white" />
-            </div>
+        messages={messages}
+        setMessages={setMessages}
 
-            <div className="leading-tight">
-              <h1 className="text-lg font-bold tracking-tight text-slate-900">
-                Legal Assist
-              </h1>
+        conversationId={conversationId}
+        setConversationId={setConversationId}
 
-              <p className="text-xs text-slate-500">
-                AI-Powered Legal Information Assistance System
-              </p>
-            </div>
-          </div>
-
-          {/* Right */}
-          <div className="relative group">
-            <button
-              onClick={() => navigate("/dashboard/profile")}
-              className="
-                flex
-                h-8
-                w-8
-                items-center
-                justify-center
-                rounded-full
-                bg-[#1f5ae2]
-                text-base
-                text-white
-                shadow-sm
-                transition-all
-                duration-200
-                hover:scale-102
-                hover:shadow-md
-                active:scale-95
-              "
-            >
-              {initial}
-            </button>
-
-            {/* Tooltip */}
-            <div
-              className="
-                pointer-events-none
-                absolute
-                right-0
-                top-12
-                rounded-lg
-                bg-slate-900
-                px-3
-                py-1.5
-                text-xs
-                text-white
-                opacity-0
-                transition
-                duration-200
-                group-hover:opacity-100
-              "
-            >
-              Profile
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Body */}
-      <div className="mt-16 flex h-[calc(100vh-4rem)]">
-        <Sidebar
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-
-          messages={messages}
-          setMessages={setMessages}
-
-          conversationId={conversationId}
-          setConversationId={setConversationId}
-
-          conversations={conversations}
-          historyLoading={historyLoading}
-          loadConversations={loadConversations}
+        conversations={conversations}
+        historyLoading={historyLoading}
+        loadConversations={loadConversations}
+        currentPage={currentPage}
+        // Filter props for Lawyers page
+        filters={filters}
+        setFilters={setFilters}
+        availableLocations={availableLocations}
+      />
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Navbar - z-index: 40, fixed height 64px */}
+        <DashboardNavbar 
+          user={user}
+          className="shrink-0"
         />
-        <main className="flex-1 min-w-0 overflow-hidden bg-slate-50">
+
+        {/* Main Content */}
+        <main className="flex h-full flex-1 flex-col overflow-hidden bg-slate-50">
           <Outlet
             context={{
               user,
@@ -147,6 +162,11 @@ const DashboardLayout = ({
 
               conversations,
               loadConversations,
+              // Filter props for Lawyers page
+              filters,
+              setFilters,
+              availableLocations,
+              setAvailableLocations,
             }}
           />
         </main>

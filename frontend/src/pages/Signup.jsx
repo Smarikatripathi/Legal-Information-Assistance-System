@@ -65,15 +65,15 @@ const Signup = () => {
       {/* Background */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-[#084FF4]/10 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-[#C30A1C]/10 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-[#2563EB]/10 blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-2xl">
         <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-xl shadow-slate-200/60 sm:p-6 md:p-8">
           {/* Logo */}
           <div className="mb-8 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#C30A1C]/10 sm:h-16 sm:w-16">
-              <Scale className="h-7 w-7 text-[#C30A1C] sm:h-8 sm:w-8" />
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#2563EB]/10 sm:h-16 sm:w-16">
+              <Scale className="h-7 w-7 text-[#2563EB] sm:h-8 sm:w-8" />
             </div>
 
             <h1 className="mt-5 text-2xl font-bold text-slate-900 sm:text-3xl">
@@ -255,7 +255,7 @@ const Signup = () => {
             Already have an account?{" "}
             <Link
               to="/login"
-              className="font-semibold text-[#C30A1C] hover:underline"
+              className="font-semibold text-[#084FF4] hover:underline"
             >
               Log In
             </Link>

@@ -274,6 +274,8 @@ DEFAULT_FROM_EMAIL = config(
 )
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 SITE_NAME = "Legal Information Assistance System"
+# Backend URL for static files in emails
+BACKEND_URL = config("BACKEND_URL", default="http://localhost:8000")
 # Base URL for links in password-reset emails (Django reset page or your SPA).
 PASSWORD_RESET_BASE_URL = config(
     "PASSWORD_RESET_BASE_URL",
@@ -410,9 +412,9 @@ JAZZMIN_SETTINGS = {
     "site_title": "Legal Information Admin",
     "site_header": "Legal Information Assistance System",
     "site_brand": "Legal Assist",
-    "site_logo": "admin/img/legal-assist-logo.jpeg",
-    "login_logo": "admin/img/legal-assist-logo.jpeg",
-    "site_icon": "admin/img/legal-assist-logo.jpeg",
+    "site_logo": "admin/img/legal-assist-logo.png",
+    "login_logo": "admin/img/legal-assist-logo.png",
+    "site_icon": "admin/img/legal-assist-logo.png",
     "site_logo_classes": "rounded-3 shadow-sm",
     "welcome_sign": "Welcome to the Legal Information Assistance System admin",
     "copyright": "",
@@ -425,6 +427,7 @@ JAZZMIN_SETTINGS = {
     "hide_models": [],
     "theme": "light",
     "dark_mode_theme": "darkly",
+    "sidebar_color": "light",
     "icon_provider": "fontawesome",
     "default_icon_parents": "fas fa-folder-open",
     "default_icon_children": "fas fa-circle-dot",

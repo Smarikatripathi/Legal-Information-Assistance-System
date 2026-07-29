@@ -1,4 +1,4 @@
-import { SendHorizontal } from "lucide-react";
+import { SendHorizontal, Paperclip, Mic } from "lucide-react";
 
 const ChatInput = ({
   value,
@@ -13,17 +13,37 @@ const ChatInput = ({
   flex
   items-center
   gap-3
-  rounded-2xl
+  rounded-[20px]
   border
   border-slate-200
-  bg-[#F5F7FA]
-  px-3
-  py-3
-  transition-colors
+  bg-white
+  px-4
+  py-4
+  shadow-sm
+  transition-all
   duration-200
-  hover:border-slate-400
+  hover:border-slate-300
+  focus-within:border-[#2563EB]
+  focus-within:shadow-md
 "
+      style={{ minHeight: '72px' }}
     >
+      {/* Attachment Icon */}
+      <button
+        className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+        aria-label="Attach file"
+      >
+        <Paperclip size={20} />
+      </button>
+
+      {/* Microphone Icon */}
+      <button
+        className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+        aria-label="Voice input"
+      >
+        <Mic size={20} />
+      </button>
+
       <input
         type="text"
         value={value}
@@ -40,7 +60,7 @@ const ChatInput = ({
           bg-transparent
           px-2
           py-2
-          text-[15px]
+          text-base
           text-slate-700
           placeholder:text-slate-400
           outline-none
@@ -52,23 +72,22 @@ const ChatInput = ({
         disabled={!value.trim()}
         className="
           flex
-          h-11
-          w-11
+          h-12
+          w-12
           shrink-0
           items-center
           justify-center
-          rounded-xl
-          bg-[#084FF4]
+          rounded-full
+          bg-[#2563EB]
           text-white
+          shadow-sm
 
           transition-all
           duration-200
 
-          hover:bg-[#063fd1]
+          hover:bg-[#1D4ED8]
           hover:scale-105
-
-          group-focus-within:scale-105
-          group-focus-within:bg-[#063fd1]
+          hover:shadow-md
 
           active:scale-95
 
@@ -76,10 +95,10 @@ const ChatInput = ({
           disabled:text-slate-500
           disabled:cursor-not-allowed
           disabled:hover:scale-100
-          disabled:group-focus-within:scale-100
+          disabled:hover:shadow-sm
         "
       >
-        <SendHorizontal size={18} />
+        <SendHorizontal size={20} />
       </button>
     </div>
   );

@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Lawyers from "./pages/Lawyers";
+import LawyerProfile from "./pages/LawyerProfile";
 import Profile from "./pages/Profile";
 import ForgotPassword from "./pages/ForgotPassword";
 import NotFound from "./pages/NotFound";
@@ -31,24 +32,9 @@ const App = () => {
           }
         >
           <Route index element={<ChatArea />} />
-
-          <Route
-            path="profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="lawyers"
-            element={
-              <ProtectedRoute>
-                <Lawyers />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="profile" element={<Profile />} />
+          <Route path="lawyers" element={<Lawyers />} />
+          <Route path="lawyers/:id" element={<LawyerProfile />} />
         </Route>
       </Routes>
     </BrowserRouter>

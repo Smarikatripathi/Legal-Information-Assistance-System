@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Outlet } from "react-router-dom";
 
 import DashboardLayout from "../layouts/DashboardLayout";
 import { getConversations } from "../services/chatService";
@@ -45,7 +46,14 @@ const Dashboard = () => {
       setConversations={setConversations}
       historyLoading={historyLoading}
       loadConversations={loadConversations}
-    />
+      // Filter props (optional, for Lawyers page)
+      filters={null}
+      setFilters={() => {}}
+      availableLocations={[]}
+      setAvailableLocations={() => {}}
+    >
+      <Outlet />
+    </DashboardLayout>
   );
 };
 

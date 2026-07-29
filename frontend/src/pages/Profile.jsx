@@ -4,6 +4,7 @@ import { Lock, Mail, User, Save } from "lucide-react";
 import { toast } from "react-toastify";
 
 import { updateProfile, changePassword } from "../services/authService";
+import Breadcrumb from "../components/ui/Breadcrumb";
 
 const getErrorMessage = (error, fallback) => {
   const data = error.response?.data;
@@ -124,6 +125,14 @@ const Profile = () => {
   return (
     <div className="h-full overflow-y-auto bg-slate-50">
       <div className="mx-auto max-w-5xl px-5 py-8">
+        {/* Breadcrumb */}
+        <Breadcrumb
+          items={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Profile" },
+          ]}
+        />
+
         {/* Profile Header */}
 
         <div className="mb-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
@@ -242,52 +251,6 @@ const Profile = () => {
                   text-slate-500
                 "
               />
-            </div>
-
-                        {/* Username */}
-
-            <div className="md:col-span-2">
-
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Username
-              </label>
-
-              <input
-                type="text"
-                value={profile.username}
-                onChange={(e) =>
-                  setProfile({
-                    ...profile,
-                    username: e.target.value,
-                  })
-                }
-                className="input"
-              />
-
-            </div>
-
-
-            {/* Email */}
-
-            <div className="md:col-span-2">
-
-              <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
-                <Mail size={16} />
-                Email Address
-              </label>
-
-              <input
-                type="email"
-                value={profile.email}
-                readOnly
-                className="
-                  input
-                  cursor-not-allowed
-                  bg-slate-100
-                  text-slate-500
-                "
-              />
-
             </div>
 
 
