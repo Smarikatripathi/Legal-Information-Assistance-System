@@ -19,6 +19,22 @@ export const loginFetch = async (email, password) => {
   return res.data;
 };
 
+// ---------------- FORGOT PASSWORD ----------------
+
+export const forgotPassword = async (email) => {
+  const res = await axios.post(
+    `${API}/forgot-password/`,
+    {
+      email,
+    }
+  );
+
+  return res.data;
+};
+
+
+
+
 // ---------------- SIGNUP ----------------
 export const signup = async (data) => {
   const res = await axios.post(`${API}/signup/`, data);
@@ -29,16 +45,6 @@ export const signup = async (data) => {
   }
 
   return res.data;
-};
-
-// ---------------- LOGOUT ----------------
-export const logout = async () => {
-  const refresh = localStorage.getItem("refresh");
-
-  await axios.post(`${API}/logout/`, { refresh });
-
-  localStorage.removeItem("access");
-  localStorage.removeItem("refresh");
 };
 
 // ---------------- PROFILE ----------------
