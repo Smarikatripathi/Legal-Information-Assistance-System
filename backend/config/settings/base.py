@@ -15,7 +15,7 @@ env = environ.Env()
 READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=True)
 if READ_DOT_ENV_FILE:
     # OS environment variables take precedence over variables from .env
-    env.read_env(str(BASE_DIR / ".env"))
+    env.read_env(str(BASE_DIR / ".envs/.local/.django"))
 
 # GENERAL
 # ------------------------------------------------------------------------------
@@ -440,7 +440,7 @@ JAZZMIN_SETTINGS = {
     "copyright": "",
     "search_model": "auth.User",
     "show_sidebar": True,
-    "navigation_expanded": True,
+    "navigation_expanded": False,
     "show_ui_builder": False,
     "language_selector": True,
     "hide_apps": [],
