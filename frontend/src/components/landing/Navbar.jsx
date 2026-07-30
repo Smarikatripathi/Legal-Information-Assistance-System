@@ -104,7 +104,7 @@ const Navbar = () => {
               text-white
               transition-all
               duration-200
-              hover:bg-[#1D4ED8]
+              hover:bg-primary-hover
             "
           >
             Get Started
@@ -190,7 +190,7 @@ const Navbar = () => {
                     text-white
                     transition-all
                     duration-200
-                    hover:bg-[#1D4ED8]
+                    hover:bg-primary-hover
                   "
                 >
                   Get Started

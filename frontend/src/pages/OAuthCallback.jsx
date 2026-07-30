@@ -81,7 +81,7 @@ const OAuthCallback = () => {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
         <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-xl">
-          <div className="mb-6 rounded-xl border border-[#C30A1C]/20 bg-[#C30A1C]/10 px-4 py-3 text-sm font-medium text-[#C30A1C]">
+          <div className="mb-6 rounded-xl border border-accent/20 bg-accent/10 px-4 py-3 text-sm font-medium text-accent">
             {error}
           </div>
           <button

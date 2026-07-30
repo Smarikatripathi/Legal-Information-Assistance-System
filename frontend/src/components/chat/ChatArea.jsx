@@ -91,7 +91,7 @@ const ChatArea = () => {
       >
         {messages.length === 0 ? (
           <div className="flex h-full min-h-0 items-center justify-center px-8 pt-8">
-            <div className="w-full max-w-[900px] text-center animate-fade-in">
+            <div className="w-full max-w-225 text-center animate-fade-in">
               {/* Small Logo */}
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-[#2563EB] shadow-lg shadow-blue-100">
                 <Scale size={24} className="text-white" />
@@ -114,7 +114,7 @@ const ChatArea = () => {
               </p>
 
               {/* Disclaimer */}
-              <div className="mx-auto mt-4 max-w-[760px] rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-center">
+              <div className="mx-auto mt-4 max-w-190 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-center">
                 <p className="text-xs leading-tight text-amber-900">
                   <strong>⚠ Disclaimer:</strong> AI responses may be inaccurate.
                   Always verify important legal information with a qualified

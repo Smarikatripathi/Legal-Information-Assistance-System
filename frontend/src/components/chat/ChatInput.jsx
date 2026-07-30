@@ -70,7 +70,7 @@ const ChatInput = ({
           transition-all
           duration-200
 
-          hover:bg-[#1D4ED8]
+          hover:bg-primary
           hover:scale-105
           hover:shadow-md
 
