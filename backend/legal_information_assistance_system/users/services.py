@@ -16,8 +16,8 @@ User = get_user_model()
 
 
 def get_tokens_for_user(user: User) -> dict[str, str]:
-    max_retries = 3
-    retry_delay = 0.1
+    max_retries = 10
+    retry_delay = 0.5
     
     for attempt in range(max_retries):
         try:
@@ -29,7 +29,7 @@ def get_tokens_for_user(user: User) -> dict[str, str]:
         except OperationalError as e:
             if "database is locked" in str(e) and attempt < max_retries - 1:
                 time.sleep(retry_delay)
-                retry_delay *= 2
+                retry_delay *= 1.5
                 continue
             raise
 
@@ -39,8 +39,20 @@ def authenticate_user(*, email: str, password: str) -> User | None:
 
 
 def blacklist_refresh_token(refresh_token: str) -> None:
-    token = RefreshToken(refresh_token)
-    token.blacklist()
+    max_retries = 10
+    retry_delay = 0.5
+    
+    for attempt in range(max_retries):
+        try:
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return
+        except OperationalError as e:
+            if "database is locked" in str(e) and attempt < max_retries - 1:
+                time.sleep(retry_delay)
+                retry_delay *= 1.5
+                continue
+            raise
 
 
 def change_user_password(*, user: User, old_password: str, new_password: str) -> None:
