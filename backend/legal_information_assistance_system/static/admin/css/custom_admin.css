@@ -713,3 +713,62 @@ body { background: var(--legal-bg); color: var(--legal-text); }
     grid-template-columns: 1fr;
   }
 }
+
+/* Django Admin Login Page Logo Fix */
+.login-page .login-box {
+  max-width: 400px !important;
+  padding: 2rem !important;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+}
+
+.login-page .login-logo {
+  margin-bottom: 1.5rem !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+.login-page .login-logo img,
+.login-page .login-box .login-logo img {
+  max-width: 80px !important;
+  max-height: 80px !important;
+  width: 80px !important;
+  height: 80px !important;
+  border-radius: 50% !important;
+  object-fit: contain !important;
+  background: white !important;
+  padding: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.login-page .login-page-header {
+  text-align: center !important;
+  margin-bottom: 1.5rem !important;
+}
+
+.login-page .login-page-header h1 {
+  font-size: 1.5rem !important;
+  font-weight: 600 !important;
+  color: #1f4b99 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.login-page .btn-primary {
+  background: #1f4b99 !important;
+  border-color: #1f4b99 !important;
+  border-radius: 8px !important;
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 500 !important;
+}
+
+.login-page .form-control {
+  border-radius: 8px !important;
+  padding: 0.75rem !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.login-page .form-control:focus {
+  border-color: #1f4b99 !important;
+  box-shadow: 0 0 0 3px rgba(31, 75, 153, 0.1) !important;
+}

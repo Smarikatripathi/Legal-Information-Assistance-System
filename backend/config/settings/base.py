@@ -64,8 +64,9 @@ DATABASES = {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
         "OPTIONS": {
-            "timeout": 90,
+            "timeout": 30,
         },
+        "CONN_MAX_AGE": 0,
     }
 }
 
@@ -381,6 +382,26 @@ ACCOUNT_FORMS = {"signup": "legal_information_assistance_system.users.forms.User
 SOCIALACCOUNT_ADAPTER = "legal_information_assistance_system.users.adapters.SocialAccountAdapter"
 # https://docs.allauth.org/en/latest/socialaccount/configuration.html
 SOCIALACCOUNT_FORMS = {"signup": "legal_information_assistance_system.users.forms.UserSocialSignupForm"}
+# https://docs.allauth.org/en/latest/socialaccount/configuration.html
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "APP": {
+            "client_id": env("GOOGLE_OAUTH_CLIENT_ID", default=""),
+            "secret": env("GOOGLE_OAUTH_SECRET", default=""),
+            "key": "",
+        },
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "offline",
+        },
+    }
+}
+
+# Frontend URL for OAuth redirects
+FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:5173")
 
 # django-rest-framework
 # -------------------------------------------------------------------------------

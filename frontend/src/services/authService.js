@@ -92,3 +92,17 @@ export const changePassword = async (oldPassword, newPassword) => {
 
   return res.data;
 };
+
+// ---------------- GOOGLE OAUTH ----------------
+export const googleOAuthLogin = async (code) => {
+  const res = await axios.post(`${API}/google/`, {
+    code: code,
+  });
+
+  // store tokens
+  if (res.data.access) {
+    localStorage.setItem("access", res.data.access);
+    localStorage.setItem("refresh", res.data.refresh);
+  }
+  return res.data;
+};

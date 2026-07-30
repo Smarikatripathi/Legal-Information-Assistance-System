@@ -9,6 +9,7 @@ import LawyerProfile from "./pages/LawyerProfile";
 import Profile from "./pages/Profile";
 import ForgotPassword from "./pages/ForgotPassword";
 import NotFound from "./pages/NotFound";
+import OAuthCallback from "./pages/OAuthCallback";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import ChatArea from "./components/chat/ChatArea";
 
@@ -21,6 +22,7 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/auth/callback/google/" element={<OAuthCallback />} />
 
         {/* Protected Routes */}
         <Route
