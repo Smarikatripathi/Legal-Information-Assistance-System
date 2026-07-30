@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import requests
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import status
@@ -121,6 +122,103 @@ class ForgotPasswordView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+class GoogleOAuthView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        code = request.data.get("code")
+        if not code:
+            return Response(
+                {"detail": "Authorization code is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Check if Google OAuth is configured
+        try:
+            social_providers = settings.SOCIALACCOUNT_PROVIDERS
+            google_config = social_providers.get("google", {})
+            app_config = google_config.get("APP", {})
+            client_id = app_config.get("client_id")
+            client_secret = app_config.get("secret")
+            
+            if not client_id or not client_secret:
+                return Response(
+                    {"detail": "Google OAuth is not configured. Please set GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_SECRET in environment variables."},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+        except Exception as e:
+            return Response(
+                {"detail": f"Google OAuth configuration error: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        # Exchange authorization code for access token
+        try:
+            frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+            redirect_uri = f"{frontend_url}/auth/callback/google/"
+            
+            token_response = requests.post(
+                "https://oauth2.googleapis.com/token",
+                data={
+                    "code": code,
+                    "client_id": client_id,
+                    "client_secret": client_secret,
+                    "redirect_uri": redirect_uri,
+                    "grant_type": "authorization_code",
+                }
+            )
+            token_response.raise_for_status()
+            token_data = token_response.json()
+            access_token = token_data.get("access_token")
+        except requests.RequestException as e:
+            return Response(
+                {"detail": f"Failed to exchange authorization code for access token: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Get user info from Google
+        try:
+            user_info_response = requests.get(
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                headers={"Authorization": f"Bearer {access_token}"}
+            )
+            user_info_response.raise_for_status()
+            user_info = user_info_response.json()
+        except requests.RequestException as e:
+            return Response(
+                {"detail": f"Failed to get user info from Google: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        email = user_info.get("email")
+        if not email:
+            return Response(
+                {"detail": "Email not found in Google user info."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Get or create user
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            # Create new user with Google info
+            username = email.split("@")[0]
+            # Ensure username is unique
+            base_username = username
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+            
+            user = User.objects.create_user(
+                email=email,
+                username=username,
+                password=None,  # No password for OAuth users
+            )
+
+        return Response(get_tokens_for_user(user))
 
 
 

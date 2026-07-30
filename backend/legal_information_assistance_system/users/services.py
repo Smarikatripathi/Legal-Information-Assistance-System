@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import time
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
+from django.db import OperationalError
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -14,11 +16,22 @@ User = get_user_model()
 
 
 def get_tokens_for_user(user: User) -> dict[str, str]:
-    refresh = RefreshToken.for_user(user)
-    return {
-        "refresh": str(refresh),
-        "access": str(refresh.access_token),
-    }
+    max_retries = 3
+    retry_delay = 0.1
+    
+    for attempt in range(max_retries):
+        try:
+            refresh = RefreshToken.for_user(user)
+            return {
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            }
+        except OperationalError as e:
+            if "database is locked" in str(e) and attempt < max_retries - 1:
+                time.sleep(retry_delay)
+                retry_delay *= 2
+                continue
+            raise
 
 
 def authenticate_user(*, email: str, password: str) -> User | None:

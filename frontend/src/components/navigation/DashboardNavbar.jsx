@@ -1,4 +1,4 @@
-import { Bell, Scale } from "lucide-react";
+import { Scale } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const DashboardNavbar = ({ user }) => {
@@ -35,15 +35,6 @@ const DashboardNavbar = ({ user }) => {
 
         {/* Right */}
         <div className="flex items-center gap-3">
-          {/* Notification Icon */}
-          <button
-            className="relative rounded-lg p-2 transition hover:bg-slate-100"
-            aria-label="Notifications"
-          >
-            <Bell size={20} className="text-slate-600" />
-            <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
-          </button>
-
           {/* User Avatar */}
           <button
             onClick={() => navigate("/dashboard/profile")}
