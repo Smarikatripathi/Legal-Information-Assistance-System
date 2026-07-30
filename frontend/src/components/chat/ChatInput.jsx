@@ -13,12 +13,12 @@ const ChatInput = ({
   flex
   items-center
   gap-3
-  rounded-[20px]
+  rounded-xl
   border
   border-slate-200
   bg-white
   px-4
-  py-4
+  py-1
   shadow-sm
   transition-all
   duration-200
@@ -28,21 +28,6 @@ const ChatInput = ({
 "
       style={{ minHeight: '72px' }}
     >
-      {/* Attachment Icon */}
-      <button
-        className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
-        aria-label="Attach file"
-      >
-        <Paperclip size={20} />
-      </button>
-
-      {/* Microphone Icon */}
-      <button
-        className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
-        aria-label="Voice input"
-      >
-        <Mic size={20} />
-      </button>
 
       <input
         type="text"
