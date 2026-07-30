@@ -52,8 +52,8 @@ const Avatar = ({
         items-center
         justify-center
         rounded-full
-        bg-gradient-to-br
-        from-[#C30A1C]
+        bg-linear-to-br
+        from-accent
         to-[#8a0614]
         text-white
         font-semibold

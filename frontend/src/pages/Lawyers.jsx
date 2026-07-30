@@ -234,7 +234,7 @@ const Lawyers = () => {
                     items-center
                     justify-center
                     rounded-full
-                    bg-[#C30A1C]
+                    bg-accent
                     text-lg
                     font-bold
                     text-white
@@ -400,12 +400,12 @@ const Lawyers = () => {
                     text-slate-700
                     transition-all
                     duration-200
-                    hover:border-[#C30A1C]
-                    hover:bg-[#C30A1C]
+                    hover:border-accent
+                    hover:bg-accent
                     hover:text-white
                     focus:outline-none
                     focus:ring-2
-                    focus:ring-[#C30A1C]
+                    focus:ring-accent
                     focus:ring-offset-2
                   "
                 >

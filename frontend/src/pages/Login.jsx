@@ -100,7 +100,7 @@ const Login = () => {
 
           {/* Error */}
           {error && (
-            <div className="mb-5 rounded-xl border border-[#C30A1C]/20 bg-[#C30A1C]/10 px-4 py-3 text-sm font-medium text-[#C30A1C]">
+            <div className="mb-5 rounded-xl border border-accent/20 bg-accent/10 px-4 py-3 text-sm font-medium text-accent">
               {error}
             </div>
           )}
@@ -233,7 +233,7 @@ const Login = () => {
             Don't have an account?{" "}
             <Link
               to="/signup"
-              className="font-semibold text-[#C30A1C] transition hover:underline"
+              className="font-semibold text-accent transition hover:underline"
             >
               Create Account
             </Link>

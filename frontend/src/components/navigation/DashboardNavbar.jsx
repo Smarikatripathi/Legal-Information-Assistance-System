@@ -10,7 +10,7 @@ const DashboardNavbar = ({ user }) => {
     "U";
 
   return (
-    <header className="h-[72px] shrink-0 border-b border-slate-200 bg-white shadow-sm">
+    <header className="h-18 shrink-0 border-b border-slate-200 bg-white shadow-sm">
       <div className="flex h-full items-center justify-between px-6">
         {/* Left */}
         <div className="flex items-center gap-4">

@@ -117,7 +117,7 @@ const DashboardLayout = ({
   }, []);
 
   return (
-    <div className="flex h-[100dvh] overflow-hidden bg-slate-50">
+    <div className="flex h-dvh overflow-hidden bg-slate-50">
       {/* Sidebar - z-index: 30 */}
       <Sidebar
         sidebarState={sidebarState}
