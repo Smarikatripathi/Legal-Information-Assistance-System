@@ -19,6 +19,11 @@ class NotificationService:
         severity: str = "medium"
     ) -> AdminNotification:
         """Create a notification for a new knowledge gap."""
+        print(f"DEBUG: create_knowledge_gap_notification called")
+        print(f"DEBUG: Knowledge gap ID: {knowledge_gap.id}")
+        print(f"DEBUG: Knowledge gap query: {knowledge_gap.query}")
+        print(f"DEBUG: Severity: {severity}")
+        
         title = f"New Knowledge Gap: {knowledge_gap.query[:50]}..."
         message = (
             f"A user query could not be answered from the current knowledge base.\n\n"
@@ -29,6 +34,7 @@ class NotificationService:
             f"Please review and determine if new documents are needed."
         )
         
+        print(f"DEBUG: About to create AdminNotification record")
         notification = AdminNotification.objects.create(
             notification_type="knowledge_gap",
             severity=severity,
@@ -43,6 +49,7 @@ class NotificationService:
                 "chunks_count": knowledge_gap.retrieval_results.get('count', 0),
             }
         )
+        print(f"DEBUG: AdminNotification created with ID: {notification.id}")
         return notification
     
     def create_document_failed_notification(

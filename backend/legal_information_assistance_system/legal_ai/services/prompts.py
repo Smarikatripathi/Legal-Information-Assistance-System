@@ -267,6 +267,38 @@ You MUST answer in this exact structured format:
 IMPORTANT: Always include all four sections. Never skip sections.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BACKEND NOTIFICATION (For Django Backend Only)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Before generating the answer, determine whether the retrieved legal documents contain enough information to answer the user's question.
+
+A Knowledge Gap exists if:
+- The answer is not present in the retrieved legal documents.
+- The retrieved context is insufficient.
+- The retrieved context is unrelated.
+- The legal provision cannot be found.
+- Answering would require guessing or using outside knowledge.
+
+If a Knowledge Gap exists, include the following hidden metadata exactly as shown:
+
+<BACKEND_NOTIFICATION>
+{
+  "knowledge_gap": true,
+  "reason": "Information not available in retrieved legal documents"
+}
+</BACKEND_NOTIFICATION>
+
+If the answer exists, include:
+
+<BACKEND_NOTIFICATION>
+{
+  "knowledge_gap": false
+}
+</BACKEND_NOTIFICATION>
+
+IMPORTANT: The BACKEND_NOTIFICATION block must be placed BEFORE the user-facing response sections (Direct Answer, etc.). This metadata is intended only for the Django backend to parse and should never be displayed in the frontend.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 PROHIBITED BEHAVIOURS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
