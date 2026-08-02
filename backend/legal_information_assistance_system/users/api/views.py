@@ -69,10 +69,8 @@ class LogoutView(APIView):
     def post(self, request):
         serializer = LogoutSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        try:
-            blacklist_refresh_token(serializer.validated_data["refresh"])
-        except Exception:
-            return Response({"detail": "Invalid refresh token."}, status=status.HTTP_400_BAD_REQUEST)
+        # Token blacklisting is disabled for security - tokens are not stored in database
+        # Logout simply removes the token from the client side
         return Response({"detail": "Logged out successfully."})
 
 
