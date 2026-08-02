@@ -438,7 +438,7 @@ JAZZMIN_SETTINGS = {
     "site_logo_classes": "rounded-3 shadow-sm",
     "welcome_sign": "Welcome to the Legal Information Assistance System admin",
     "copyright": "",
-    "search_model": "auth.User",
+    "search_model": "users.User",
     "show_sidebar": True,
     "navigation_expanded": False,
     "show_ui_builder": False,
@@ -453,7 +453,7 @@ JAZZMIN_SETTINGS = {
     "default_icon_children": "fas fa-circle-dot",
     "icons": {
         "auth": "fas fa-user-shield",
-        "auth.user": "fas fa-users",
+        "users.user": "fas fa-users",
         "auth.group": "fas fa-user-group",
         "account": "fas fa-envelope",
         "account.emailaddress": "fas fa-at",
@@ -486,7 +486,7 @@ JAZZMIN_SETTINGS = {
     "custom_css": "admin/css/custom_admin.css",
     "custom_js": "admin/js/custom_admin.js",
     "topmenu_links": [
-        {"name": "Dashboard", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "Dashboard", "url": "admin:index", "permissions": ["users.view_user"]},
         {"name": "Documents", "url": "admin:legal_ai_legaldocument_changelist", "permissions": ["legal_ai.view_legaldocument"]},
         {"name": "Analytics", "url": "/admin/legal-ai/analytics/", "permissions": ["legal_ai.view_legaldocument"]},
     ],
