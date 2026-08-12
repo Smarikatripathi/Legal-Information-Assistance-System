@@ -600,6 +600,9 @@ class QueryHistoryAdmin(admin.ModelAdmin):
         "created_at",
     )
 
+    # Make the query preview clickable
+    list_display_links = ("query_preview",)
+
     list_filter = (
         "created_at",
     )
@@ -629,6 +632,9 @@ class ConversationAdmin(admin.ModelAdmin):
         "updated_at",
     )
 
+    # Make the conversation title clickable
+    list_display_links = ("title",)
+
     search_fields = (
         "title",
         "user__email",
@@ -644,7 +650,7 @@ class MessageAdmin(admin.ModelAdmin):
 
     list_display = (
         "id",
-        "conversation",
+        "conversation_link",
         "role",
         "content_preview",
         "created_at",
@@ -653,6 +659,24 @@ class MessageAdmin(admin.ModelAdmin):
     list_filter = (
         "role",
     )
+
+    # Make the conversation column clickable to open the related Conversation change view
+    list_display_links = ("conversation_link",)
+
+    @admin.display(description="Conversation")
+    def conversation_link(self, obj):
+
+        if not obj.conversation:
+            return "—"
+
+        return format_html(
+            '<a href="{}">{}</a>',
+            reverse(
+                "admin:legal_ai_conversation_change",
+                args=[obj.conversation.pk],
+            ),
+            getattr(obj.conversation, "title", str(obj.conversation)),
+        )
 
     @admin.display(description="Content")
     def content_preview(self, obj):
@@ -675,6 +699,9 @@ class KnowledgeGapAdmin(admin.ModelAdmin):
         "user",
         "created_at",
     )
+
+    # Make the Query/Title preview column clickable to open the change view
+    list_display_links = ("query_preview",)
 
     list_filter = (
         "status",
@@ -804,6 +831,9 @@ class AdminNotificationAdmin(admin.ModelAdmin):
         "status",
         "created_at",
     )
+
+    # Make the Title column the clickable link to the change view
+    list_display_links = ("title",)
 
     list_filter = (
         "notification_type",
