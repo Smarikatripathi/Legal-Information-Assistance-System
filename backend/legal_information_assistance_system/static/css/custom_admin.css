@@ -27,7 +27,6 @@ body {
 /* Jazzmin Navbar Customization */
 .jazzmin-ui .navbar {
     background: var(--navbar-bg) !important;
-    border-bottom: 1px solid var(--legal-border) !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
     padding: 0.5rem 1rem !important;
 }
@@ -113,7 +112,7 @@ body {
 
 .jazzmin-ui .sidebar .brand-link {
     background: transparent !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-bottom: none !important;
     padding: 1rem !important;
 }
 
@@ -123,7 +122,7 @@ body {
 }
 
 .jazzmin-ui .sidebar .user-panel {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-bottom: none !important;
     padding: 1rem !important;
 }
 

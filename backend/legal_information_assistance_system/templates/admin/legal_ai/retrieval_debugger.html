@@ -3,81 +3,185 @@
 
 {% block extrahead %}
 {{ block.super }}
+
 <link rel="stylesheet" href="{% static 'admin/css/custom_admin.css' %}">
+
 <style>
+
+/* =========================================================
+   RETRIEVAL DEBUGGER
+   ========================================================= */
+
+.retrieval-debugger {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
 .debugger-header {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    color: white;
-    padding: 2rem;
-    border-radius: 0.75rem;
-    margin-bottom: 2rem;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #2563eb;
+    border-radius: 12px;
+
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
 }
 
 .debugger-header h1 {
-    margin-bottom: 0.5rem;
+    margin: 0 0 0.4rem;
+
+    color: #1e293b;
+
+    font-size: 1.75rem;
     font-weight: 700;
 }
 
 .debugger-header p {
-    color: #cbd5e1;
-    margin-bottom: 0;
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 0.9rem;
 }
 
+
+/* =========================================================
+   SEARCH SECTION
+   ========================================================= */
+
 .search-section {
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    background: #ffffff;
+
     border: 1px solid #e2e8f0;
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
+    border-radius: 12px;
+
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
 }
 
 .search-section h3 {
-    font-size: 1.125rem;
-    font-weight: 600;
+    margin: 0 0 0.9rem;
+
     color: #1e293b;
-    margin-bottom: 1rem;
+
+    font-size: 1rem;
+    font-weight: 600;
 }
 
 .query-textarea {
     width: 100%;
     min-height: 120px;
-    padding: 1rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.5rem;
-    font-size: 1rem;
+
+    padding: 0.9rem 1rem;
+
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+
+    background: #ffffff;
+    color: #1e293b;
+
+    font-size: 0.9rem;
+    line-height: 1.5;
+
     resize: vertical;
-    transition: border-color 0.2s ease;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .query-textarea:focus {
     outline: none;
+
     border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
+
+/* =========================================================
+   SEARCH BUTTON
+   ========================================================= */
+
+.debugger-search-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+
+    border: none;
+    border-radius: 7px;
+
+    padding: 0.6rem 1rem;
+
+    background: #2563eb;
+    color: #ffffff;
+
+    font-size: 0.82rem;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: background 0.2s ease;
+}
+
+.debugger-search-btn:hover {
+    background: #1d4ed8;
+}
+
+
+/* =========================================================
+   RESULTS SECTION
+   ========================================================= */
+
 .results-section {
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    background: #ffffff;
+
     border: 1px solid #e2e8f0;
-    border-radius: 0.75rem;
+    border-radius: 12px;
+
     overflow: hidden;
 }
 
 .results-header {
-    background-color: #f8fafc;
-    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 1rem;
+
+    padding: 1rem 1.25rem;
+
+    background: #f8fafc;
+
     border-bottom: 1px solid #e2e8f0;
 }
 
 .results-header h3 {
-    font-size: 1.125rem;
-    font-weight: 600;
+    margin: 0;
+
     color: #1e293b;
-    margin-bottom: 0;
+
+    font-size: 1rem;
+    font-weight: 600;
 }
 
+
+/* =========================================================
+   RESULT CARD
+   ========================================================= */
+
 .result-card {
-    padding: 1.5rem;
+    padding: 1.25rem;
+
     border-bottom: 1px solid #e2e8f0;
+
     transition: background-color 0.2s ease;
 }
 
@@ -86,173 +190,447 @@
 }
 
 .result-card:hover {
-    background-color: #f8fafc;
+    background: #f8fafc;
 }
 
 .result-header {
     display: flex;
-    justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 1rem;
+    justify-content: space-between;
+
+    gap: 1rem;
+
+    margin-bottom: 0.75rem;
+
     flex-wrap: wrap;
-    gap: 0.5rem;
 }
 
 .result-title {
-    font-weight: 600;
     color: #1e293b;
-    font-size: 1rem;
+
+    font-size: 0.95rem;
+    font-weight: 600;
+
+    min-width: 0;
+
+    word-break: break-word;
 }
 
+
+/* =========================================================
+   SCORE BADGES
+   ========================================================= */
+
 .score-badge {
-    background-color: rgba(37, 99, 235, 0.1);
+    display: inline-flex;
+    align-items: center;
+
+    padding: 0.25rem 0.65rem;
+
+    border-radius: 999px;
+
+    background: rgba(37, 99, 235, 0.1);
     color: #2563eb;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.875rem;
+
+    font-size: 0.75rem;
     font-weight: 600;
+
+    white-space: nowrap;
 }
 
 .score-high {
-    background-color: rgba(22, 163, 74, 0.1);
+    background: rgba(22, 163, 74, 0.1);
     color: #16a34a;
 }
 
 .score-medium {
-    background-color: rgba(245, 158, 11, 0.1);
+    background: rgba(217, 119, 6, 0.1);
     color: #d97706;
 }
 
 .score-low {
-    background-color: rgba(239, 68, 68, 0.1);
+    background: rgba(220, 38, 38, 0.1);
     color: #dc2626;
 }
 
+
+/* =========================================================
+   RESULT META
+   ========================================================= */
+
 .result-meta {
     display: flex;
-    gap: 1.5rem;
+    align-items: center;
+
+    gap: 1rem;
+
     margin-bottom: 0.75rem;
+
     flex-wrap: wrap;
 }
 
 .meta-item {
-    font-size: 0.875rem;
     color: #64748b;
+
+    font-size: 0.78rem;
 }
 
 .meta-label {
-    font-weight: 500;
+    color: #475569;
+
+    font-weight: 600;
 }
 
+
+/* =========================================================
+   RESULT TEXT
+   ========================================================= */
+
 .result-text {
-    background-color: #f8fafc;
+    background: #f8fafc;
+
     border: 1px solid #e2e8f0;
-    border-radius: 0.5rem;
+    border-radius: 8px;
+
     padding: 1rem;
-    font-size: 0.875rem;
+
     color: #475569;
+
+    font-size: 0.82rem;
     line-height: 1.6;
-    max-height: 200px;
+
+    max-height: 220px;
+
     overflow-y: auto;
+
+    word-break: break-word;
 }
+
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
 
 .empty-state {
     text-align: center;
-    padding: 4rem 2rem;
+
+    padding: 3rem 1.5rem;
+
     color: #64748b;
 }
 
 .empty-state i {
-    font-size: 4rem;
-    color: #cbd5e1;
+    display: block;
+
     margin-bottom: 1rem;
+
+    color: #cbd5e1;
+
+    font-size: 3rem;
 }
 
 .empty-state h3 {
-    font-size: 1.25rem;
+    margin: 0 0 0.5rem;
+
     color: #1e293b;
-    margin-bottom: 0.5rem;
+
+    font-size: 1.1rem;
+    font-weight: 600;
 }
 
 .empty-state p {
-    margin-bottom: 1.5rem;
+    max-width: 600px;
+
+    margin: 0 auto 1.25rem;
+
+    font-size: 0.85rem;
+
+    line-height: 1.6;
 }
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    .retrieval-debugger {
+        max-width: 100%;
+    }
+
+    .debugger-header {
+        padding: 1.1rem;
+    }
+
+    .debugger-header h1 {
+        font-size: 1.4rem;
+    }
+
+    .debugger-header p {
+        font-size: 0.82rem;
+    }
+
+    .search-section {
+        padding: 1rem;
+    }
+
+    .result-card {
+        padding: 1rem;
+    }
+
+    .result-header {
+        flex-direction: column;
+
+        align-items: flex-start;
+    }
+
+    .results-header {
+        padding: 0.9rem 1rem;
+    }
+
+    .result-meta {
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 0.4rem;
+    }
+}
+
 </style>
+
 {% endblock %}
 
-{% block sidebar %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+
+<div class="retrieval-debugger">
+
+
+    <!-- =====================================================
+         HEADER
+         ====================================================== -->
+
     <div class="debugger-header">
-        <h1>Retrieval Debugger</h1>
-        <p>Test and debug the RAG retrieval system to ensure accurate legal information retrieval</p>
+
+        <h1>
+            Retrieval Debugger
+        </h1>
+
+        <p>
+            Test and debug the RAG retrieval system to verify
+            accurate legal information retrieval.
+        </p>
+
     </div>
+
+
+    <!-- =====================================================
+         SEARCH
+         ====================================================== -->
 
     <div class="search-section">
-        <h3><i class="fas fa-search me-2"></i>Test Query</h3>
+
+        <h3>
+            <i class="fas fa-search me-2"></i>
+            Test Query
+        </h3>
+
+
         <form method="post">
+
             {% csrf_token %}
-            <textarea name="query" class="query-textarea mb-3" placeholder="Type a legal query to test retrieval...">{{ query }}</textarea>
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-magnifying-glass me-1"></i> Search Retrieval System
+
+            <textarea
+                name="query"
+                class="query-textarea mb-3"
+                placeholder="Type a legal query to test retrieval..."
+            >{{ query }}</textarea>
+
+
+            <button
+                type="submit"
+                class="debugger-search-btn"
+            >
+                <i class="fas fa-magnifying-glass"></i>
+                Search Retrieval System
             </button>
+
         </form>
+
     </div>
 
+
+    <!-- =====================================================
+         RESULTS
+         ====================================================== -->
+
     {% if results %}
+
     <div class="results-section">
+
         <div class="results-header">
-            <h3><i class="fas fa-list me-2"></i>Retrieval Results ({{ results|length }} chunks found)</h3>
+
+            <h3>
+                <i class="fas fa-list me-2"></i>
+
+                Retrieval Results
+                ({{ results|length }} chunks found)
+            </h3>
+
         </div>
+
+
         {% for hit in results %}
+
         <div class="result-card">
+
             <div class="result-header">
-                <div class="result-title">{{ hit.document_name }}</div>
-                <div class="score-badge {% if hit.score >= 0.8 %}score-high{% elif hit.score >= 0.5 %}score-medium{% else %}score-low{% endif %}">
+
+                <div class="result-title">
+                    {{ hit.document_name }}
+                </div>
+
+
+                <div
+                    class="score-badge
+                    {% if hit.score >= 0.8 %}
+                        score-high
+                    {% elif hit.score >= 0.5 %}
+                        score-medium
+                    {% else %}
+                        score-low
+                    {% endif %}"
+                >
                     Score: {{ hit.score|floatformat:4 }}
                 </div>
+
             </div>
+
+
             <div class="result-meta">
+
                 <div class="meta-item">
-                    <span class="meta-label">Chunk ID:</span> {{ hit.chunk_id }}
+
+                    <span class="meta-label">
+                        Chunk ID:
+                    </span>
+
+                    {{ hit.chunk_id }}
+
                 </div>
+
+
                 {% if hit.section %}
+
                 <div class="meta-item">
-                    <span class="meta-label">Section:</span> {{ hit.section }}
+
+                    <span class="meta-label">
+                        Section:
+                    </span>
+
+                    {{ hit.section }}
+
                 </div>
+
                 {% endif %}
+
+
                 {% if hit.article %}
+
                 <div class="meta-item">
-                    <span class="meta-label">Article:</span> {{ hit.article }}
+
+                    <span class="meta-label">
+                        Article:
+                    </span>
+
+                    {{ hit.article }}
+
                 </div>
+
                 {% endif %}
+
             </div>
+
+
             <div class="result-text">
                 {{ hit.text }}
             </div>
+
         </div>
+
         {% endfor %}
+
     </div>
+
+
     {% elif query %}
+
+
+    <!-- =====================================================
+         NO RESULTS
+         ====================================================== -->
+
     <div class="results-section">
+
         <div class="empty-state">
+
             <i class="fas fa-search-minus"></i>
-            <h3>No Results Found</h3>
-            <p>The retrieval system did not find any relevant chunks for your query. Try rephrasing your question or check if documents are properly indexed.</p>
-            <a href="{% url 'admin:ingestion-dashboard' %}" class="btn btn-outline-primary">
-                <i class="fas fa-gears me-1"></i> Check Ingestion Status
+
+            <h3>
+                No Results Found
+            </h3>
+
+            <p>
+                The retrieval system did not find any relevant
+                chunks for your query. Try rephrasing your question
+                or check whether your legal documents are properly indexed.
+            </p>
+
+
+            <a
+                href="{% url 'admin:index' %}"
+                class="btn btn-outline-primary"
+            >
+                <i class="fas fa-gauge-high me-1"></i>
+                Return to Dashboard
             </a>
+
         </div>
+
     </div>
+
+
     {% else %}
+
+
+    <!-- =====================================================
+         INITIAL EMPTY STATE
+         ====================================================== -->
+
     <div class="results-section">
+
         <div class="empty-state">
+
             <i class="fas fa-keyboard"></i>
-            <h3>Enter a Query to Begin</h3>
-            <p>Type a legal question above to test the retrieval system and see which chunks are returned.</p>
+
+            <h3>
+                Enter a Query to Begin
+            </h3>
+
+            <p>
+                Type a legal question above to test the retrieval
+                system and see which legal document chunks are returned.
+            </p>
+
         </div>
+
     </div>
+
     {% endif %}
+
+
 </div>
+
 {% endblock %}

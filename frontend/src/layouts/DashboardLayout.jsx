@@ -18,17 +18,17 @@ const DashboardLayout = ({
   // Three-state sidebar: 'expanded' | 'collapsed' | 'hidden'
   const [sidebarState, setSidebarState] = useState(() => {
     const saved = localStorage.getItem("sidebarState");
-    return saved || 'expanded';
+    return saved || "expanded";
   });
-  
+
   // Resizable sidebar width (for expanded state)
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     const saved = localStorage.getItem("sidebarWidth");
     return saved ? parseInt(saved) : 280;
   });
-  
+
   const [isMobile, setIsMobile] = useState(false);
-  
+
   const [user, setUser] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -38,10 +38,10 @@ const DashboardLayout = ({
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
     };
-    
+
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   // Filter state for Lawyers page
@@ -53,13 +53,14 @@ const DashboardLayout = ({
 
   const [availableLocations, setAvailableLocations] = useState([]);
 
-  const currentPage = location.pathname === "/dashboard"
-    ? "dashboard"
-    : location.pathname.startsWith("/dashboard/lawyers")
-    ? "lawyers"
-    : location.pathname === "/dashboard/profile"
-    ? "profile"
-    : "dashboard";
+  const currentPage =
+    location.pathname === "/dashboard"
+      ? "dashboard"
+      : location.pathname.startsWith("/dashboard/lawyers")
+        ? "lawyers"
+        : location.pathname === "/dashboard/profile"
+          ? "profile"
+          : "dashboard";
 
   // Persist sidebar state to localStorage
   useEffect(() => {
@@ -74,7 +75,7 @@ const DashboardLayout = ({
   // Close sidebar drawer when navigating on mobile
   useEffect(() => {
     if (isMobile) {
-      setSidebarState('hidden');
+      setSidebarState("hidden");
     }
   }, [location.pathname, isMobile]);
 
@@ -82,24 +83,26 @@ const DashboardLayout = ({
   const handleMenuClick = () => {
     if (isMobile) {
       // Mobile: toggle drawer
-      setSidebarState(prev => prev === 'hidden' ? 'expanded' : 'hidden');
+      setSidebarState((prev) => (prev === "hidden" ? "expanded" : "hidden"));
     } else {
       // Desktop: toggle collapse/expand
-      setSidebarState(prev => prev === 'expanded' ? 'collapsed' : 'expanded');
+      setSidebarState((prev) =>
+        prev === "expanded" ? "collapsed" : "expanded",
+      );
     }
   };
 
   // Prevent body scroll when sidebar drawer is open on mobile
   useEffect(() => {
-    const isDrawerOpen = isMobile && sidebarState !== 'hidden';
-    
+    const isDrawerOpen = isMobile && sidebarState !== "hidden";
+
     if (isDrawerOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     }
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     };
   }, [sidebarState, isMobile]);
 
@@ -142,8 +145,10 @@ const DashboardLayout = ({
       />
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Navbar - z-index: 40, fixed height 64px */}
-        <DashboardNavbar 
+        <DashboardNavbar
           user={user}
+          onMenuClick={handleMenuClick}
+          isMobile={isMobile}
           className="shrink-0"
         />
 
