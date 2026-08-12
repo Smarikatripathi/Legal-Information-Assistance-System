@@ -772,3 +772,11 @@ body { background: var(--legal-bg); color: var(--legal-text); }
   border-color: #1f4b99 !important;
   box-shadow: 0 0 0 3px rgba(31, 75, 153, 0.1) !important;
 }
+.sidebar-brand,
+.sidebar-brand::before,
+.sidebar-brand::after {
+    border: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+}

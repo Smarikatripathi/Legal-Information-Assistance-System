@@ -93,10 +93,8 @@ DJANGO_APPS = [
     "django.contrib.staticfiles",
     # "django.contrib.humanize", # Handy template tags
     "django.forms",
-    
 ]
 THIRD_PARTY_APPS = [
-    
     "crispy_forms",
     "crispy_bootstrap5",
     "allauth",
@@ -105,7 +103,6 @@ THIRD_PARTY_APPS = [
     "django_celery_beat",
     "rest_framework",
     "rest_framework.authtoken",
-    
     "drf_spectacular",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
@@ -115,7 +112,6 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "legal_information_assistance_system.users",
     "legal_information_assistance_system.legal_ai",
-    
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -124,7 +120,9 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # MIGRATIONS
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#migration-modules
-MIGRATION_MODULES = {"sites": "legal_information_assistance_system.contrib.sites.migrations"}
+MIGRATION_MODULES = {
+    "sites": "legal_information_assistance_system.contrib.sites.migrations"
+}
 
 # AUTHENTICATION
 # ------------------------------------------------------------------------------
@@ -164,7 +162,6 @@ AUTH_PASSWORD_VALIDATORS = [
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#middleware
 MIDDLEWARE = [
-    
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
@@ -257,8 +254,7 @@ X_FRAME_OPTIONS = "DENY"
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
 EMAIL_BACKEND = config(
-    "EMAIL_BACKEND",
-    default="django.core.mail.backends.smtp.EmailBackend"
+    "EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend"
 )
 
 EMAIL_HOST = config("EMAIL_HOST", default="smtp.gmail.com")
@@ -376,11 +372,17 @@ ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 # https://docs.allauth.org/en/latest/account/configuration.html
 ACCOUNT_ADAPTER = "legal_information_assistance_system.users.adapters.AccountAdapter"
 # https://docs.allauth.org/en/latest/account/forms.html
-ACCOUNT_FORMS = {"signup": "legal_information_assistance_system.users.forms.UserSignupForm"}
+ACCOUNT_FORMS = {
+    "signup": "legal_information_assistance_system.users.forms.UserSignupForm"
+}
 # https://docs.allauth.org/en/latest/socialaccount/configuration.html
-SOCIALACCOUNT_ADAPTER = "legal_information_assistance_system.users.adapters.SocialAccountAdapter"
+SOCIALACCOUNT_ADAPTER = (
+    "legal_information_assistance_system.users.adapters.SocialAccountAdapter"
+)
 # https://docs.allauth.org/en/latest/socialaccount/configuration.html
-SOCIALACCOUNT_FORMS = {"signup": "legal_information_assistance_system.users.forms.UserSocialSignupForm"}
+SOCIALACCOUNT_FORMS = {
+    "signup": "legal_information_assistance_system.users.forms.UserSocialSignupForm"
+}
 # https://docs.allauth.org/en/latest/socialaccount/configuration.html
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
@@ -409,9 +411,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
-    "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",
-    ),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
 }
 
 # django-cors-headers - https://github.com/adamchainz/django-cors-headers#setup
@@ -486,24 +486,27 @@ JAZZMIN_SETTINGS = {
     "custom_css": "admin/css/custom_admin.css",
     "custom_js": "admin/js/custom_admin.js",
     "topmenu_links": [
-        {"name": "Dashboard", "url": "admin:index", "permissions": ["users.view_user"]},
-        {"name": "Documents", "url": "admin:legal_ai_legaldocument_changelist", "permissions": ["legal_ai.view_legaldocument"]},
-        {"name": "Analytics", "url": "/admin/legal-ai/analytics/", "permissions": ["legal_ai.view_legaldocument"]},
+        {
+            "name": "Dashboard",
+            "url": "admin:index",
+            "permissions": ["users.view_user"],
+        },
+        {
+            "name": "Documents",
+            "url": "admin:legal_ai_legaldocument_changelist",
+            "permissions": ["legal_ai.view_legaldocument"],
+        },
     ],
     "custom_links": {
         "legal_ai": [
-            {"name": "Ingestion Dashboard", "url": "/admin/legal-ai/ingestion/", "icon": "fas fa-gears", "permissions": ["legal_ai.view_legaldocument"]},
-            {"name": "RAG Analytics", "url": "/admin/legal-ai/analytics/", "icon": "fas fa-chart-line", "permissions": ["legal_ai.view_legaldocument"]},
-            {"name": "Retrieval Debugger", "url": "/admin/legal-ai/retrieval-debugger/", "icon": "fas fa-magnifying-glass-chart", "permissions": ["legal_ai.view_legaldocument"]},
-        ]
+            {
+                "name": "Retrieval Debugger",
+                "url": "/admin/legal_ai/retrieval-debugger/",
+                "icon": "fas fa-magnifying-glass-chart",
+                "permissions": ["legal_ai.view_legaldocument"],
+            },
+        ],
     },
-    "statusbar": [
-        {
-            "text": "System Status",
-            "url": "/admin/legal-ai/analytics/",
-            "icon": "fas fa-heartbeat",
-        },
-    ],
 }
 # RAG / Legal AI
 # ------------------------------------------------------------------------------

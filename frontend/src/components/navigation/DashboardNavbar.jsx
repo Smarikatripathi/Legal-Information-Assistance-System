@@ -1,7 +1,7 @@
-import { Scale } from "lucide-react";
+import { Menu, Scale } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const DashboardNavbar = ({ user }) => {
+const DashboardNavbar = ({ user, onMenuClick, isMobile }) => {
   const navigate = useNavigate();
 
   const initial =
@@ -10,10 +10,21 @@ const DashboardNavbar = ({ user }) => {
     "U";
 
   return (
-    <header className="h-[72px] shrink-0 border-b border-slate-200 bg-white shadow-sm">
+    <header className="h-18 shrink-0 border-b border-slate-200 bg-white shadow-sm">
       <div className="flex h-full items-center justify-between px-6">
         {/* Left */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
+          {isMobile && onMenuClick && (
+            <button
+              type="button"
+              onClick={onMenuClick}
+              className="inline-flex items-center justify-center p-1 text-slate-700 transition hover:text-slate-900 active:scale-95 lg:hidden"
+              aria-label="Open sidebar menu"
+            >
+              <Menu className="h-7 w-7" />
+            </button>
+          )}
+
           <button
             onClick={() => navigate("/dashboard")}
             className="flex items-center gap-3 transition hover:opacity-80"

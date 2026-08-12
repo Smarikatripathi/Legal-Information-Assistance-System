@@ -2,6 +2,6 @@
   "model_name": "intfloat/multilingual-e5-base",
   "dimension": 768,
   "total_vectors": 8805,
-  "last_rebuild": "2026-07-24T15:05:04.715745+00:00",
+  "last_rebuild": "2026-08-07T06:12:02.021435+00:00",
   "index_file_size_bytes": 27049005
 }

@@ -6,40 +6,47 @@ class LegalAiConfig(AppConfig):
     name = "legal_information_assistance_system.legal_ai"
 
     def ready(self):
-        # Register custom admin URLs once
+        """
+        Register custom Legal AI admin URLs.
+
+        The main admin dashboard and other custom admin pages
+        are handled inside legal_ai.admin.
+
+        This file registers the Retrieval Debugger URL.
+        """
+
         from django.contrib import admin
         from django.urls import path
 
         from legal_information_assistance_system.legal_ai.admin import (
-            analytics_dashboard_view,
-            ingestion_dashboard_view,
             retrieval_debugger_view,
         )
 
-        if getattr(admin.site, "_legal_ai_urls_registered", False):
+        # Prevent duplicate URL registration during
+        # Django's development autoreloader.
+        if getattr(
+            admin.site,
+            "_legal_ai_urls_registered",
+            False,
+        ):
             return
 
         original_get_urls = admin.site.get_urls
 
         def get_urls_with_legal_ai():
-            custom = [
+            custom_urls = [
                 path(
-                    "legal-ai/retrieval-debugger/",
-                    admin.site.admin_view(retrieval_debugger_view),
+                    "legal_ai/retrieval-debugger/",
+                    admin.site.admin_view(
+                        retrieval_debugger_view
+                    ),
                     name="retrieval-debugger",
                 ),
-                path(
-                    "legal-ai/ingestion/",
-                    admin.site.admin_view(ingestion_dashboard_view),
-                    name="ingestion-dashboard",
-                ),
-                path(
-                    "legal-ai/analytics/",
-                    admin.site.admin_view(analytics_dashboard_view),
-                    name="rag-analytics",
-                ),
             ]
-            return custom + original_get_urls()
+
+            return custom_urls + original_get_urls()
 
         admin.site.get_urls = get_urls_with_legal_ai
+
         admin.site._legal_ai_urls_registered = True
+
