@@ -1,5 +1,6 @@
 """Single RAG pipeline entry point: classification → retrieval → generation."""
 
+import re
 import time
 from typing import Any, Dict, Optional
 
@@ -127,9 +128,23 @@ def answer_query(
     if not retrieved_chunks:
         print(f"DEBUG: No chunks retrieved for query: {query}")
         print(f"DEBUG: Retrieved chunks: {retrieved_chunks}")
-        print(f"DEBUG: This will return early WITHOUT calling knowledge gap detector")
+        print(f"DEBUG: Creating knowledge gap for no retrieval results")
+
+        retrieval_assessment = knowledge_gap_detector.assess_retrieval(
+            enhanced_query, retrieved_chunks, []
+        )
+        knowledge_gap_detector.create_knowledge_gap(
+            user_id=user_id,
+            conversation_id=conversation_id,
+            query=enhanced_query,
+            retrieval_assessment=retrieval_assessment,
+            retrieved_chunks=retrieved_chunks,
+            relevance_scores=[],
+            detected_language=query_language,
+            force_create=True,
+        )
+
         elapsed_ms = int((time.perf_counter() - start) * 1000)
-        # Return the exact message specified in the prompt for low-confidence retrieval
         not_found_message = "The uploaded legal documents do not contain enough information to answer this question."
         if query_language == "ne":
             not_found_message = "अपलोड गरिएका कानुनी कागजातहरूमा यो प्रश्नको उत्तर दिन पर्याप्त जानकारी छैन।"
@@ -143,6 +158,7 @@ def answer_query(
             "retrieval_time_ms": retrieval_time,
             "generation_time_ms": 0,
             "skipped_llm": True,
+            "knowledge_gap_detected": True,
             "classification": classification.label,
         }
 
@@ -153,13 +169,14 @@ def answer_query(
     retrieval_assessment = knowledge_gap_detector.assess_retrieval(
         enhanced_query, retrieved_chunks, relevance_scores
     )
-    print(f"DEBUG: Gap detected: {retrieval_assessment.gap_detected}")
+    print(f"DEBUG: Initial gap detected: {retrieval_assessment.gap_detected}")
     print(f"DEBUG: Gap reason: {retrieval_assessment.gap_reason}")
     print(f"DEBUG: Confidence score: {retrieval_assessment.confidence_score}")
 
+    # If retrieval itself indicates insufficient evidence, create a knowledge gap
+    # and return the standard unavailable-information response.
     if retrieval_assessment.gap_detected:
-        print(f"DEBUG: Calling create_knowledge_gap for query: {query}")
-        # Create knowledge gap record
+        print(f"DEBUG: Retrieval assessment indicates insufficient evidence for query: {query}")
         knowledge_gap_detector.create_knowledge_gap(
             user_id=user_id,
             conversation_id=conversation_id,
@@ -169,9 +186,7 @@ def answer_query(
             relevance_scores=relevance_scores,
             detected_language=query_language,
         )
-        print(f"DEBUG: Knowledge gap creation completed")
 
-        # If gap is detected, return gap response
         elapsed_ms = int((time.perf_counter() - start) * 1000)
         not_found_message = "The uploaded legal documents do not contain enough information to answer this question."
         if query_language == "ne":
@@ -180,7 +195,7 @@ def answer_query(
             "query": query,
             "answer": not_found_message,
             "sources": [],
-            "confidence_score": retrieval_assessment.confidence_score,
+            "confidence_score": 0.0,
             "response_time_ms": elapsed_ms,
             "query_language": query_language,
             "retrieval_time_ms": retrieval_time,
@@ -191,7 +206,46 @@ def answer_query(
             "classification": classification.label,
         }
 
-    # Step 8: LLM Answer Generation (only if high confidence)
+    # Evaluate retrieval sufficiency using only the retrieved context before generation.
+    answerability_evaluation = knowledge_gap_detector.evaluate_answerability(
+        enhanced_query,
+        retrieved_chunks,
+        query_language=query_language,
+    )
+    print(f"DEBUG: Retrieval-only answerability evaluation: {answerability_evaluation}")
+
+    if answerability_evaluation.knowledge_gap:
+        print(f"DEBUG: Retrieval-only evaluation detected a knowledge gap for query: {query}")
+        knowledge_gap_detector.create_knowledge_gap(
+            user_id=user_id,
+            conversation_id=conversation_id,
+            query=enhanced_query,
+            retrieval_assessment=retrieval_assessment,
+            retrieved_chunks=retrieved_chunks,
+            relevance_scores=relevance_scores,
+            detected_language=query_language,
+            force_create=True,
+        )
+        elapsed_ms = int((time.perf_counter() - start) * 1000)
+        not_found_message = "The uploaded legal documents do not contain enough information to answer this question."
+        if query_language == "ne":
+            not_found_message = "अपलोड गरिएका कानुनी कागजातहरूमा यो प्रश्नको उत्तर दिन पर्याप्त जानकारी छैन।"
+        return {
+            "query": query,
+            "answer": not_found_message,
+            "sources": [],
+            "confidence_score": 0.0,
+            "response_time_ms": elapsed_ms,
+            "query_language": query_language,
+            "retrieval_time_ms": retrieval_time,
+            "generation_time_ms": 0,
+            "skipped_llm": True,
+            "knowledge_gap_detected": True,
+            "knowledge_gap_reason": answerability_evaluation.reason,
+            "classification": classification.label,
+        }
+
+    # Step 8: LLM Answer Generation
     generation_start = time.perf_counter()
     
     # Build context from chunks with better metadata
@@ -232,84 +286,15 @@ def answer_query(
     
     generation_time = int((time.perf_counter() - generation_start) * 1000)
     elapsed_ms = int((time.perf_counter() - start) * 1000)
-    
-    # Parse BACKEND_NOTIFICATION block from LLM response
-    knowledge_gap_from_llm = False
+
+    # Remove any BACKEND_NOTIFICATION metadata from the generated answer before returning to the client.
     import re
-    
-    print(f"DEBUG: ========== POST-LLM PROCESSING ==========")
-    print(f"DEBUG: LLM response: {answer[:300]}...")
-    print(f"DEBUG: retrieval_assessment.gap_detected: {retrieval_assessment.gap_detected}")
-    print(f"DEBUG: retrieval_assessment.confidence_score: {retrieval_assessment.confidence_score}")
-    print(f"DEBUG: retrieval_assessment.top_relevance: {retrieval_assessment.top_relevance}")
-    
-    # Extract BACKEND_NOTIFICATION block
     notification_match = re.search(r'<BACKEND_NOTIFICATION>(.*?)</BACKEND_NOTIFICATION>', answer, re.DOTALL)
     if notification_match:
-        notification_content = notification_match.group(1).strip()
-        print(f"DEBUG: BACKEND_NOTIFICATION found: {notification_content}")
-        
-        # Parse JSON from notification
-        try:
-            import json
-            notification_data = json.loads(notification_content)
-            knowledge_gap_from_llm = notification_data.get("knowledge_gap", False)
-            print(f"DEBUG: Knowledge gap from LLM metadata: {knowledge_gap_from_llm}")
-            
-            # Remove the notification block from the answer before sending to user
-            answer = re.sub(r'<BACKEND_NOTIFICATION>.*?</BACKEND_NOTIFICATION>', '', answer, flags=re.DOTALL).strip()
-        except json.JSONDecodeError as e:
-            print(f"DEBUG: Failed to parse BACKEND_NOTIFICATION JSON: {e}")
-    else:
-        print(f"DEBUG: BACKEND_NOTIFICATION not found in LLM response")
-        
-        # Fallback 1: Keyword-based detection (immediate, reliable)
-        answer_lower = answer.lower()
-        unavailable_keywords = [
-            "not explicitly stated",
-            "not available",
-            "does not contain",
-            "insufficient information",
-            "not found",
-            "cannot be determined",
-            "no information",
-            "not mentioned",
-            "does not address",
-            "not directly addressed",
-        ]
-        
-        keyword_detected = any(keyword in answer_lower for keyword in unavailable_keywords)
-        print(f"DEBUG: Keyword-based gap detection: {keyword_detected}")
-        
-        if keyword_detected:
-            knowledge_gap_from_llm = True
-            print(f"DEBUG: Knowledge gap detected via keywords")
-        else:
-            # Fallback 2: Semantic classification (slower but more accurate)
-            print(f"DEBUG: Using semantic classification as fallback")
-            knowledge_gap_from_llm = knowledge_gap_detector.semantically_detect_knowledge_gap(answer)
-    
-    print(f"DEBUG: Final knowledge_gap_from_llm: {knowledge_gap_from_llm}")
-    print(f"DEBUG: Condition check: knowledge_gap_from_llm={knowledge_gap_from_llm}, not retrieval_assessment.gap_detected={not retrieval_assessment.gap_detected}")
-    
-    # Trigger notification if LLM detected a knowledge gap but the detector didn't
-    if knowledge_gap_from_llm and not retrieval_assessment.gap_detected:
-        print(f"DEBUG: ========== CREATING KNOWLEDGE GAP ==========")
-        print(f"DEBUG: LLM indicates knowledge gap but detector didn't. Creating notification.")
-        # Create knowledge gap record for LLM-detected gaps
-        knowledge_gap_detector.create_knowledge_gap(
-            user_id=user_id,
-            conversation_id=conversation_id,
-            query=enhanced_query,
-            retrieval_assessment=retrieval_assessment,
-            retrieved_chunks=retrieved_chunks,
-            relevance_scores=relevance_scores,
-            detected_language=query_language,
-            force_create=True,  # Force creation since LLM detected gap - RELOADED
-        )
-        print(f"DEBUG: ========== KNOWLEDGE GAP CREATION COMPLETED ==========")
-    else:
-        print(f"DEBUG: Notification NOT triggered. knowledge_gap_from_llm={knowledge_gap_from_llm}, gap_detected={retrieval_assessment.gap_detected}")
+        answer = re.sub(r'<BACKEND_NOTIFICATION>.*?</BACKEND_NOTIFICATION>', '', answer, flags=re.DOTALL).strip()
+
+    gap_detected = False
+    gap_reason = retrieval_assessment.gap_reason or "Retrieved documents were sufficient for generation."
 
     # Format sources
     sources = []
@@ -332,6 +317,7 @@ def answer_query(
         "retrieval_time_ms": retrieval_time,
         "generation_time_ms": generation_time,
         "skipped_llm": False,
-        "knowledge_gap_detected": False,
+        "knowledge_gap_detected": gap_detected,
+        "knowledge_gap_reason": gap_reason,
         "classification": classification.label,
     }

@@ -20,8 +20,17 @@ class RetrievalAssessment:
     has_sufficient_evidence: bool
     confidence_score: float
     top_relevance: float
+    avg_relevance: float
     gap_detected: bool
     gap_reason: str
+
+
+@dataclass
+class AnswerabilityEvaluationResult:
+    """Structured result for answerability and knowledge gap evaluation."""
+    is_answerable: bool
+    knowledge_gap: bool
+    reason: str
 
 
 class KnowledgeGapDetector:
@@ -45,6 +54,7 @@ class KnowledgeGapDetector:
                 has_sufficient_evidence=False,
                 confidence_score=0.0,
                 top_relevance=0.0,
+                avg_relevance=0.0,
                 gap_detected=True,
                 gap_reason="No chunks retrieved",
             )
@@ -60,6 +70,7 @@ class KnowledgeGapDetector:
                 has_sufficient_evidence=False,
                 confidence_score=avg_score,
                 top_relevance=top_score,
+                avg_relevance=avg_score,
                 gap_detected=True,
                 gap_reason=f"Low relevance score: {top_score:.2f} < {KNOWLEDGE_GAP_THRESHOLD} (insufficient evidence)",
             )
@@ -73,6 +84,7 @@ class KnowledgeGapDetector:
                 has_sufficient_evidence=False,
                 confidence_score=avg_score,
                 top_relevance=top_score,
+                avg_relevance=avg_score,
                 gap_detected=True,
                 gap_reason=f"Insufficient high-quality chunks: {high_quality_count} < 1",
             )
@@ -83,6 +95,7 @@ class KnowledgeGapDetector:
             has_sufficient_evidence=True,
             confidence_score=avg_score,
             top_relevance=top_score,
+            avg_relevance=avg_score,
             gap_detected=False,
             gap_reason="",
         )
@@ -193,6 +206,123 @@ class KnowledgeGapDetector:
             return True
         
         return False
+
+    def _build_evaluation_context(self, retrieved_chunks: List[Dict], max_chunks: int = 5) -> str:
+        """Build a compact textual representation of retrieved chunks for evaluation."""
+        context_parts = []
+        for i, chunk in enumerate(retrieved_chunks[:max_chunks], start=1):
+            metadata = chunk.get("metadata", {}) or {}
+            doc_name = metadata.get("document_name") or metadata.get("document_title") or "Unknown Document"
+            article = metadata.get("article") or metadata.get("article_number") or ""
+            section = metadata.get("section") or metadata.get("section_number") or ""
+            header_items = [f"Source {i}: {doc_name}"]
+            if article:
+                header_items.append(f"Article {article}")
+            if section:
+                header_items.append(f"Section {section}")
+            header = " | ".join(header_items)
+            context_parts.append(f"{header}\n{chunk.get('text', '')}")
+        return "\n\n".join(context_parts)
+
+    def evaluate_answerability(
+        self,
+        query: str,
+        retrieved_chunks: List[Dict],
+        answer: Optional[str] = None,
+        query_language: str = "en",
+    ) -> AnswerabilityEvaluationResult:
+        """Evaluate whether the retrieved context actually contains an answer to the query."""
+        if not retrieved_chunks:
+            return AnswerabilityEvaluationResult(
+                is_answerable=False,
+                knowledge_gap=True,
+                reason="No legal context was retrieved for the query.",
+            )
+
+        context_text = self._build_evaluation_context(retrieved_chunks)
+        answer_section = ""
+        if answer is not None:
+            answer_section = f"\n\nGenerated Answer:\n{answer}"
+
+        evaluation_prompt = f"""You are an evaluator for a legal retrieval system.
+
+Question:
+{query}
+
+Retrieved Legal Context:
+{context_text}{answer_section}
+
+Instructions:
+- Use only the retrieved legal context above to decide if the question can be answered.
+- Do not use outside knowledge.
+- Answerable means the retrieved context contains the requested legal information needed to directly answer the question.
+- If the question asks for a specific fact or statement that is not present in the retrieved documents, this is a knowledge gap even if the answer correctly says the information is unavailable.
+- A knowledge gap also exists when the retrieved context is related but does not actually contain the requested information.
+- If the context is related and contains substantive legal provisions that directly answer the question, treat it as answerable.
+
+Return ONLY valid JSON with these fields:
+{{
+  "is_answerable": true or false,
+  "knowledge_gap": true or false,
+  "reason": "A short explanation of the decision"
+}}
+"""
+
+        print(f"DEBUG: Evaluating answerability for question: {query}")
+        print(f"DEBUG: Retrieved context length: {len(context_text)}")
+        print(f"DEBUG: Answer present: {bool(answer)}")
+
+        try:
+            evaluation_text = llm.generate_from_prompt(evaluation_prompt, query_language=query_language)
+            print(f"DEBUG: Answerability evaluation output: {evaluation_text[:400]}...")
+            import json, re
+            json_text_match = re.search(r"\{.*\}", evaluation_text, re.DOTALL)
+            if json_text_match:
+                evaluation_data = json.loads(json_text_match.group(0))
+                is_answerable = bool(evaluation_data.get("is_answerable", False))
+                knowledge_gap = bool(evaluation_data.get("knowledge_gap", False))
+                reason = evaluation_data.get("reason", "")
+                return AnswerabilityEvaluationResult(
+                    is_answerable=is_answerable,
+                    knowledge_gap=knowledge_gap,
+                    reason=reason,
+                )
+        except Exception as e:
+            print(f"ERROR: Answerability evaluation failed: {e}")
+            import traceback
+            print(traceback.format_exc())
+
+        # Fallback heuristic if evaluation failed or output was invalid
+        fallback_reason = "Unable to parse answerability evaluation from the model; falling back to keyword heuristics."
+        print(f"DEBUG: {fallback_reason}")
+        if answer is not None:
+            lower_answer = answer.lower()
+            unavailable_keywords = [
+                "not explicitly stated",
+                "not available",
+                "does not contain",
+                "insufficient information",
+                "not found",
+                "cannot be determined",
+                "no information",
+                "not mentioned",
+                "does not address",
+                "not directly addressed",
+                "not in the retrieved",
+                "not present in",
+            ]
+            if any(keyword in lower_answer for keyword in unavailable_keywords):
+                return AnswerabilityEvaluationResult(
+                    is_answerable=False,
+                    knowledge_gap=True,
+                    reason="Answer indicates the requested legal information is unavailable in retrieved documents.",
+                )
+
+        return AnswerabilityEvaluationResult(
+            is_answerable=True,
+            knowledge_gap=False,
+            reason="Retrieved context appears sufficient to answer the question.",
+        )
     
     def semantically_detect_knowledge_gap(self, llm_response: str) -> bool:
         """Use LLM to semantically classify if response indicates a knowledge gap.
