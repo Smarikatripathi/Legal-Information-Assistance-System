@@ -1,0 +1,2169 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrahead %}
+{{ block.super }}
+
+<link
+    rel="stylesheet"
+    href="{% static 'admin/css/custom_admin.css' %}"
+>
+
+<link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+>
+
+<style>
+
+/* =========================================================
+   LEGAL ASSIST DASHBOARD
+   ========================================================= */
+
+:root {
+    --la-primary: #2563eb;
+    --la-primary-dark: #1d4ed8;
+
+    --la-success: #16a34a;
+    --la-warning: #d97706;
+    --la-danger: #dc2626;
+    --la-info: #0891b2;
+
+    --la-text: #1e293b;
+    --la-muted: #64748b;
+
+    --la-border: #e2e8f0;
+    --la-bg: #f8fafc;
+    --la-white: #ffffff;
+}
+
+
+/* =========================================================
+   REMOVE JAZZMIN FOOTER
+   ========================================================= */
+
+footer,
+.jazzmin-footer,
+.main-footer,
+.content-footer {
+    display: none !important;
+}
+
+
+/* =========================================================
+   MAIN DASHBOARD
+   ========================================================= */
+
+.legal-dashboard {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.dashboard-header {
+    margin-bottom: 1.5rem;
+}
+
+.dashboard-header h1 {
+    margin: 0;
+
+    color: var(--la-text);
+
+    font-size: 1.75rem;
+    line-height: 1.2;
+
+    font-weight: 700;
+}
+
+.dashboard-header p {
+    margin: 0.4rem 0 0;
+
+    color: var(--la-muted);
+
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   KPI CARDS
+   ========================================================= */
+
+.stats-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(5, minmax(0, 1fr));
+
+    gap: 1rem;
+
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    min-width: 0;
+
+    background: var(--la-white);
+
+    border: 1px solid var(--la-border);
+
+    border-radius: 0.75rem;
+
+    padding: 1.15rem;
+
+    box-sizing: border-box;
+}
+
+.stat-card-top {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 1rem;
+}
+
+.stat-label {
+    color: var(--la-muted);
+
+    font-size: 0.78rem;
+
+    font-weight: 500;
+
+    margin-bottom: 0.3rem;
+}
+
+.stat-value {
+    color: var(--la-text);
+
+    font-size: 1.65rem;
+
+    font-weight: 700;
+
+    line-height: 1;
+}
+
+.stat-icon {
+    width: 42px;
+    height: 42px;
+
+    flex-shrink: 0;
+
+    border-radius: 0.65rem;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    color: white;
+}
+
+.stat-icon.blue {
+    background: #2563eb;
+}
+
+.stat-icon.green {
+    background: #16a34a;
+}
+
+.stat-icon.orange {
+    background: #d97706;
+}
+
+.stat-icon.purple {
+    background: #7c3aed;
+}
+
+.stat-icon.red {
+    background: #dc2626;
+}
+
+
+/* =========================================================
+   GENERAL GRID
+   ========================================================= */
+
+.dashboard-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 1.25rem;
+
+    margin-bottom: 1.25rem;
+}
+
+.dashboard-grid.two-columns {
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+}
+
+.dashboard-grid.main-columns {
+    grid-template-columns:
+        minmax(0, 2fr)
+        minmax(280px, 1fr);
+}
+
+
+/* =========================================================
+   CARD
+   ========================================================= */
+
+.dashboard-card {
+    min-width: 0;
+
+    background: var(--la-white);
+
+    border: 1px solid var(--la-border);
+
+    border-radius: 0.75rem;
+
+    overflow: hidden;
+
+    box-sizing: border-box;
+}
+
+.dashboard-card-header {
+    padding: 1rem 1.15rem;
+
+    border-bottom: 1px solid var(--la-border);
+
+    background: var(--la-bg);
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 1rem;
+}
+
+.dashboard-card-title {
+    min-width: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 0.7rem;
+}
+
+.dashboard-card-title h2 {
+    margin: 0;
+
+    color: var(--la-text);
+
+    font-size: 0.98rem;
+
+    font-weight: 650;
+
+    line-height: 1.3;
+}
+
+.card-icon {
+    width: 34px;
+    height: 34px;
+
+    flex-shrink: 0;
+
+    border-radius: 0.5rem;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    color: white;
+
+    background: var(--la-primary);
+}
+
+.dashboard-card-body {
+    padding: 1rem;
+}
+
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+.status-row {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 1rem;
+
+    padding: 0.7rem 0;
+
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.status-row:last-child {
+    border-bottom: none;
+}
+
+.status-label {
+    min-width: 0;
+
+    color: var(--la-muted);
+
+    font-size: 0.82rem;
+}
+
+.status-value {
+    min-width: 0;
+
+    color: var(--la-text);
+
+    font-size: 0.82rem;
+
+    font-weight: 600;
+
+    text-align: right;
+
+    overflow-wrap: anywhere;
+}
+
+.status-badge {
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 0.35rem;
+
+    padding: 0.3rem 0.6rem;
+
+    border-radius: 999px;
+
+    font-size: 0.7rem;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+}
+
+.status-success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-neutral {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+
+/* =========================================================
+   DOCUMENT INGESTION
+   ========================================================= */
+
+.ingestion-item {
+    margin-bottom: 1.1rem;
+}
+
+.ingestion-item:last-child {
+    margin-bottom: 0;
+}
+
+.ingestion-top {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 1rem;
+
+    margin-bottom: 0.45rem;
+}
+
+.ingestion-label {
+    color: var(--la-text);
+
+    font-size: 0.8rem;
+
+    font-weight: 500;
+}
+
+.ingestion-number {
+    color: var(--la-muted);
+
+    font-size: 0.8rem;
+
+    font-weight: 600;
+}
+
+.progress-bar {
+    width: 100%;
+
+    height: 7px;
+
+    background: #e2e8f0;
+
+    border-radius: 999px;
+
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+
+    border-radius: inherit;
+
+    background: var(--la-primary);
+
+    transition: width 0.3s ease;
+}
+
+.progress-fill.success {
+    background: var(--la-success);
+}
+
+.progress-fill.warning {
+    background: var(--la-warning);
+}
+
+.progress-fill.danger {
+    background: var(--la-danger);
+}
+
+
+/* =========================================================
+   QUICK ACTIONS
+   ========================================================= */
+
+.dashboard-actions {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 0.65rem;
+}
+
+.dashboard-action {
+    border: none;
+
+    border-radius: 0.5rem;
+
+    padding: 0.55rem 0.8rem;
+
+    font-size: 0.78rem;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    text-decoration: none;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 0.45rem;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.15s ease;
+}
+
+.dashboard-action:hover {
+    text-decoration: none;
+
+    transform: translateY(-1px);
+}
+
+.dashboard-action.primary {
+    background: var(--la-primary);
+
+    color: white;
+}
+
+.dashboard-action.primary:hover {
+    background: var(--la-primary-dark);
+
+    color: white;
+}
+
+.dashboard-action.secondary {
+    background: #f1f5f9;
+
+    color: #475569;
+}
+
+.dashboard-action.secondary:hover {
+    background: #e2e8f0;
+
+    color: #1e293b;
+}
+
+.dashboard-action.warning {
+    background: #fef3c7;
+
+    color: #92400e;
+}
+
+.dashboard-action.warning:hover {
+    background: #fde68a;
+
+    color: #78350f;
+}
+
+.dashboard-action.info {
+    background: #e0f2fe;
+
+    color: #0369a1;
+}
+
+.dashboard-action.info:hover {
+    background: #bae6fd;
+
+    color: #075985;
+}
+
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+.dashboard-table-wrapper {
+    width: 100%;
+
+    overflow-x: auto;
+
+    -webkit-overflow-scrolling: touch;
+}
+
+.dashboard-table {
+    width: 100%;
+
+    min-width: 650px;
+
+    border-collapse: collapse;
+}
+
+.dashboard-table th {
+    text-align: left;
+
+    color: var(--la-muted);
+
+    font-size: 0.72rem;
+
+    font-weight: 600;
+
+    padding: 0.65rem 0.75rem;
+
+    border-bottom: 1px solid var(--la-border);
+}
+
+.dashboard-table td {
+    color: var(--la-text);
+
+    font-size: 0.78rem;
+
+    padding: 0.7rem 0.75rem;
+
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.dashboard-table tr:last-child td {
+    border-bottom: none;
+}
+
+.document-title {
+    max-width: 280px;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
+    font-weight: 500;
+}
+
+
+/* =========================================================
+   ACTIVITY
+   ========================================================= */
+
+.activity-list {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 0.7rem;
+}
+
+.activity-item {
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 0.7rem;
+
+    padding: 0.7rem;
+
+    background: var(--la-bg);
+
+    border-radius: 0.5rem;
+}
+
+.activity-icon {
+    width: 32px;
+    height: 32px;
+
+    flex-shrink: 0;
+
+    border-radius: 0.45rem;
+
+    background: #dbeafe;
+
+    color: var(--la-primary);
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+}
+
+.activity-content {
+    min-width: 0;
+}
+
+.activity-title {
+    margin: 0;
+
+    color: var(--la-text);
+
+    font-size: 0.78rem;
+
+    font-weight: 600;
+
+    overflow-wrap: anywhere;
+}
+
+.activity-meta {
+    margin-top: 0.2rem;
+
+    color: var(--la-muted);
+
+    font-size: 0.7rem;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
+.empty-state {
+    padding: 1.5rem 0;
+
+    text-align: center;
+
+    color: var(--la-muted);
+
+    font-size: 0.8rem;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1400px) {
+
+    .stats-grid {
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+    }
+
+    .dashboard-grid.main-columns {
+        grid-template-columns:
+            minmax(0, 1fr);
+    }
+}
+
+
+@media (max-width: 1100px) {
+
+    .stats-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-grid,
+    .dashboard-grid.two-columns {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+}
+
+
+@media (max-width: 800px) {
+
+    .stats-grid,
+    .dashboard-grid,
+    .dashboard-grid.two-columns,
+    .dashboard-grid.main-columns {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .dashboard-card-header {
+        padding: 0.9rem;
+    }
+
+    .dashboard-card-body {
+        padding: 0.9rem;
+    }
+}
+
+
+@media (max-width: 576px) {
+
+    .legal-dashboard {
+        padding: 0;
+    }
+
+    .dashboard-header {
+        margin-bottom: 1rem;
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.3rem;
+    }
+
+    .dashboard-header p {
+        font-size: 0.82rem;
+    }
+
+    .stats-grid {
+        gap: 0.75rem;
+
+        margin-bottom: 1rem;
+    }
+
+    .stat-card {
+        padding: 0.9rem;
+    }
+
+    .stat-value {
+        font-size: 1.4rem;
+    }
+
+    .stat-icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    .dashboard-grid {
+        gap: 0.9rem;
+
+        margin-bottom: 0.9rem;
+    }
+
+    .dashboard-actions {
+        flex-direction: column;
+    }
+
+    .dashboard-action {
+        width: 100%;
+    }
+
+    .status-row {
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        gap: 0.3rem;
+    }
+
+    .status-value {
+        text-align: left;
+    }
+
+    .dashboard-card-title h2 {
+        font-size: 0.9rem;
+    }
+}
+
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<div class="legal-dashboard">
+
+
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
+
+    <div class="dashboard-header">
+
+        <h1>
+            Legal Assist Dashboard
+        </h1>
+
+        <p>
+            Monitor your legal knowledge base,
+            AI retrieval system, ingestion pipeline,
+            and platform activity.
+        </p>
+
+    </div>
+
+
+    <!-- =====================================================
+         KPI CARDS
+         ===================================================== -->
+
+    <div class="stats-grid">
+
+
+        <!-- LEGAL DOCUMENTS -->
+
+        <div class="stat-card">
+
+            <div class="stat-card-top">
+
+                <div>
+
+                    <div class="stat-label">
+                        Legal Documents
+                    </div>
+
+                    <div class="stat-value">
+                        {{ stats.total_documents }}
+                    </div>
+
+                </div>
+
+                <div class="stat-icon blue">
+                    <i class="fas fa-file-lines"></i>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- LEGAL CHUNKS -->
+
+        <div class="stat-card">
+
+            <div class="stat-card-top">
+
+                <div>
+
+                    <div class="stat-label">
+                        Legal Chunks
+                    </div>
+
+                    <div class="stat-value">
+                        {{ stats.total_chunks }}
+                    </div>
+
+                </div>
+
+                <div class="stat-icon green">
+                    <i class="fas fa-puzzle-piece"></i>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TOTAL QUERIES -->
+
+        <div class="stat-card">
+
+            <div class="stat-card-top">
+
+                <div>
+
+                    <div class="stat-label">
+                        Total Queries
+                    </div>
+
+                    <div class="stat-value">
+                        {{ stats.total_queries }}
+                    </div>
+
+                </div>
+
+                <div class="stat-icon purple">
+                    <i class="fas fa-magnifying-glass"></i>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- CONVERSATIONS -->
+
+        <div class="stat-card">
+
+            <div class="stat-card-top">
+
+                <div>
+
+                    <div class="stat-label">
+                        Conversations
+                    </div>
+
+                    <div class="stat-value">
+                        {{ stats.total_conversations }}
+                    </div>
+
+                </div>
+
+                <div class="stat-icon orange">
+                    <i class="fas fa-comments"></i>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- KNOWLEDGE GAPS -->
+
+        <div class="stat-card">
+
+            <div class="stat-card-top">
+
+                <div>
+
+                    <div class="stat-label">
+                        Knowledge Gaps
+                    </div>
+
+                    <div class="stat-value">
+                        {{ stats.unresolved_gaps }}
+                    </div>
+
+                </div>
+
+                <div class="stat-icon red">
+                    <i class="fas fa-triangle-exclamation"></i>
+                </div>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- =====================================================
+         SYSTEM STATUS + QUICK ACTIONS
+         ===================================================== -->
+
+    <div class="dashboard-grid main-columns">
+
+
+        <!-- =================================================
+             AI & RETRIEVAL SYSTEM
+             ================================================= -->
+
+        <section class="dashboard-card">
+
+            <div class="dashboard-card-header">
+
+                <div class="dashboard-card-title">
+
+                    <div class="card-icon">
+                        <i class="fas fa-server"></i>
+                    </div>
+
+                    <h2>
+                        AI & Retrieval System
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="dashboard-card-body">
+
+
+                <!-- FAISS STATUS -->
+
+                <div class="status-row">
+
+                    <span class="status-label">
+                        FAISS Status
+                    </span>
+
+                    {% if stats.faiss_status == "ready" or stats.faiss_status == "healthy" or stats.faiss_status == "ok" %}
+
+                        <span class="status-badge status-success">
+
+                            <i class="fas fa-circle-check"></i>
+
+                            {{ stats.faiss_status|title }}
+
+                        </span>
+
+                    {% else %}
+
+                        <span class="status-badge status-warning">
+
+                            <i class="fas fa-circle-exclamation"></i>
+
+                            {{ stats.faiss_status|title }}
+
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- EMBEDDING MODEL -->
+
+                <div class="status-row">
+
+                    <span class="status-label">
+                        Embedding Model
+                    </span>
+
+                    <span class="status-value">
+                        {{ stats.embedding_model }}
+                    </span>
+
+                </div>
+
+
+                <!-- EMBEDDING DIMENSION -->
+
+                <div class="status-row">
+
+                    <span class="status-label">
+                        Embedding Dimension
+                    </span>
+
+                    <span class="status-value">
+                        {{ stats.embedding_dimension }}
+                    </span>
+
+                </div>
+
+
+                <!-- INDEXED VECTORS -->
+
+                <div class="status-row">
+
+                    <span class="status-label">
+                        Indexed Vectors
+                    </span>
+
+                    <span class="status-value">
+                        {{ stats.total_embeddings }}
+                    </span>
+
+                </div>
+
+
+                <!-- INDEX SIZE -->
+
+                <div class="status-row">
+
+                    <span class="status-label">
+                        Index Size
+                    </span>
+
+                    <span class="status-value">
+                        {{ stats.index_size_bytes|filesizeformat }}
+                    </span>
+
+                </div>
+
+
+                <!-- LAST REBUILD -->
+
+                <div class="status-row">
+
+                    <span class="status-label">
+                        Last Rebuild
+                    </span>
+
+                    <span class="status-value">
+                        {{ stats.last_rebuild }}
+                    </span>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             QUICK ACTIONS
+             ================================================= -->
+
+        <section class="dashboard-card">
+
+            <div class="dashboard-card-header">
+
+                <div class="dashboard-card-title">
+
+                    <div class="card-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+
+                    <h2>
+                        Quick Actions
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="dashboard-card-body">
+
+                <div class="dashboard-actions">
+
+
+                    <!-- REBUILD FAISS -->
+
+                    <form method="post">
+
+                        {% csrf_token %}
+
+                        <input
+                            type="hidden"
+                            name="action"
+                            value="rebuild_faiss"
+                        >
+
+                        <button
+                            type="submit"
+                            class="dashboard-action primary"
+                        >
+
+                            <i class="fas fa-arrows-rotate"></i>
+
+                            Rebuild FAISS
+
+                        </button>
+
+                    </form>
+
+
+                    <!-- RETRIEVAL DEBUGGER -->
+
+                    <a
+                        href="{% url 'admin:retrieval-debugger' %}"
+                        class="dashboard-action info"
+                    >
+
+                        <i class="fas fa-bug"></i>
+
+                        Retrieval Debugger
+
+                    </a>
+
+
+                    <!-- RETRY FAILED DOCUMENTS -->
+
+                    {% if stats.documents_failed > 0 %}
+
+                    <form method="post">
+
+                        {% csrf_token %}
+
+                        <input
+                            type="hidden"
+                            name="action"
+                            value="retry_failed"
+                        >
+
+                        <button
+                            type="submit"
+                            class="dashboard-action warning"
+                        >
+
+                            <i class="fas fa-rotate-right"></i>
+
+                            Retry Failed
+
+                        </button>
+
+                    </form>
+
+                    {% endif %}
+
+
+                    <!-- MARK NOTIFICATIONS READ -->
+
+                    {% if stats.unread_notifications > 0 %}
+
+                    <form method="post">
+
+                        {% csrf_token %}
+
+                        <input
+                            type="hidden"
+                            name="action"
+                            value="mark_notifications_read"
+                        >
+
+                        <button
+                            type="submit"
+                            class="dashboard-action secondary"
+                        >
+
+                            <i class="fas fa-check-double"></i>
+
+                            Mark Notifications Read
+
+                        </button>
+
+                    </form>
+
+                    {% endif %}
+
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+    </div>
+
+
+    <!-- =====================================================
+         DOCUMENT INGESTION
+         ===================================================== -->
+
+    <div class="dashboard-grid two-columns">
+
+
+        <!-- DOCUMENT INGESTION -->
+
+        <section class="dashboard-card">
+
+            <div class="dashboard-card-header">
+
+                <div class="dashboard-card-title">
+
+                    <div class="card-icon">
+                        <i class="fas fa-file-import"></i>
+                    </div>
+
+                    <h2>
+                        Document Ingestion
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="dashboard-card-body">
+
+
+                <!-- COMPLETED -->
+
+                <div class="ingestion-item">
+
+                    <div class="ingestion-top">
+
+                        <span class="ingestion-label">
+                            Completed
+                        </span>
+
+                        <span class="ingestion-number">
+                            {{ stats.documents_completed }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="progress-bar">
+
+                        {% if stats.total_documents %}
+
+                            <div
+                                class="progress-fill success"
+                                style="width: {% widthratio stats.documents_completed stats.total_documents 100 %}%"
+                            ></div>
+
+                        {% else %}
+
+                            <div
+                                class="progress-fill success"
+                                style="width: 0%"
+                            ></div>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- PROCESSING -->
+
+                <div class="ingestion-item">
+
+                    <div class="ingestion-top">
+
+                        <span class="ingestion-label">
+                            Processing
+                        </span>
+
+                        <span class="ingestion-number">
+                            {{ stats.documents_processing }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="progress-bar">
+
+                        {% if stats.total_documents %}
+
+                            <div
+                                class="progress-fill"
+                                style="width: {% widthratio stats.documents_processing stats.total_documents 100 %}%"
+                            ></div>
+
+                        {% else %}
+
+                            <div
+                                class="progress-fill"
+                                style="width: 0%"
+                            ></div>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- WAITING -->
+
+                <div class="ingestion-item">
+
+                    <div class="ingestion-top">
+
+                        <span class="ingestion-label">
+                            Waiting
+                        </span>
+
+                        <span class="ingestion-number">
+                            {{ stats.documents_waiting }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="progress-bar">
+
+                        {% if stats.total_documents %}
+
+                            <div
+                                class="progress-fill warning"
+                                style="width: {% widthratio stats.documents_waiting stats.total_documents 100 %}%"
+                            ></div>
+
+                        {% else %}
+
+                            <div
+                                class="progress-fill warning"
+                                style="width: 0%"
+                            ></div>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- FAILED -->
+
+                <div class="ingestion-item">
+
+                    <div class="ingestion-top">
+
+                        <span class="ingestion-label">
+                            Failed
+                        </span>
+
+                        <span class="ingestion-number">
+                            {{ stats.documents_failed }}
+                        </span>
+
+                    </div>
+
+
+                    <div class="progress-bar">
+
+                        {% if stats.total_documents %}
+
+                            <div
+                                class="progress-fill danger"
+                                style="width: {% widthratio stats.documents_failed stats.total_documents 100 %}%"
+                            ></div>
+
+                        {% else %}
+
+                            <div
+                                class="progress-fill danger"
+                                style="width: 0%"
+                            ></div>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+        <!-- QUERY ANALYTICS -->
+
+        <section class="dashboard-card">
+
+            <div class="dashboard-card-header">
+
+                <div class="dashboard-card-title">
+
+                    <div class="card-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+
+                    <h2>
+                        Query Analytics
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="dashboard-card-body">
+
+                <div class="status-row">
+
+                    <span class="status-label">
+                        Total Queries
+                    </span>
+
+                    <span class="status-value">
+                        {{ stats.total_queries }}
+                    </span>
+
+                </div>
+
+
+                <div class="status-row">
+
+                    <span class="status-label">
+                        Average Confidence
+                    </span>
+
+                    <span class="status-value">
+                        {{ stats.avg_confidence|floatformat:2 }}
+                    </span>
+
+                </div>
+
+
+                <div class="status-row">
+
+                    <span class="status-label">
+                        Average Response Time
+                    </span>
+
+                    <span class="status-value">
+                        {{ stats.avg_response_time|floatformat:0 }} ms
+                    </span>
+
+                </div>
+
+
+                <div class="status-row">
+
+                    <span class="status-label">
+                        Conversations
+                    </span>
+
+                    <span class="status-value">
+                        {{ stats.total_conversations }}
+                    </span>
+
+                </div>
+
+
+                <div class="status-row">
+
+                    <span class="status-label">
+                        Pending Clarifications
+                    </span>
+
+                    <span class="status-value">
+                        {{ stats.pending_clarifications }}
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+    </div>
+        <!-- =====================================================
+         KNOWLEDGE GAPS + NOTIFICATIONS
+         ===================================================== -->
+
+    <div class="dashboard-grid two-columns">
+
+
+        <!-- KNOWLEDGE & AI ISSUES -->
+
+        <section class="dashboard-card">
+
+            <div class="dashboard-card-header">
+
+                <div class="dashboard-card-title">
+
+                    <div class="card-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+
+                    <h2>
+                        Knowledge & AI Issues
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="dashboard-card-body">
+
+
+                <!-- TOTAL KNOWLEDGE GAPS -->
+
+                <div class="status-row">
+
+                    <span class="status-label">
+                        Total Knowledge Gaps
+                    </span>
+
+                    <span class="status-value">
+                        {{ stats.knowledge_gaps }}
+                    </span>
+
+                </div>
+
+
+                <!-- UNRESOLVED GAPS -->
+
+                <div class="status-row">
+
+                    <span class="status-label">
+                        Unresolved Gaps
+                    </span>
+
+
+                    {% if stats.unresolved_gaps > 0 %}
+
+                        <span class="status-badge status-warning">
+
+                            <i class="fas fa-triangle-exclamation"></i>
+
+                            {{ stats.unresolved_gaps }}
+
+                        </span>
+
+                    {% else %}
+
+                        <span class="status-badge status-success">
+
+                            <i class="fas fa-check"></i>
+
+                            None
+
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+
+                <!-- PENDING CLARIFICATIONS -->
+
+                <div class="status-row">
+
+                    <span class="status-label">
+                        Pending Clarifications
+                    </span>
+
+                    <span class="status-value">
+                        {{ stats.pending_clarifications }}
+                    </span>
+
+                </div>
+
+
+                <!-- UNREAD NOTIFICATIONS -->
+
+                <div class="status-row">
+
+                    <span class="status-label">
+                        Unread Notifications
+                    </span>
+
+                    <span class="status-value">
+                        {{ stats.unread_notifications }}
+                    </span>
+
+                </div>
+
+
+                <!-- HIGH PRIORITY -->
+
+                <div class="status-row">
+
+                    <span class="status-label">
+                        High Priority Notifications
+                    </span>
+
+
+                    {% if stats.high_priority_notifications > 0 %}
+
+                        <span class="status-badge status-danger">
+
+                            <i class="fas fa-triangle-exclamation"></i>
+
+                            {{ stats.high_priority_notifications }}
+
+                        </span>
+
+                    {% else %}
+
+                        <span class="status-badge status-success">
+
+                            <i class="fas fa-check"></i>
+
+                            None
+
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+        <!-- DOCUMENT BREAKDOWN -->
+
+        <section class="dashboard-card">
+
+            <div class="dashboard-card-header">
+
+                <div class="dashboard-card-title">
+
+                    <div class="card-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+
+                    <h2>
+                        Document Breakdown
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="dashboard-card-body">
+
+
+                {% if stats.documents_by_type %}
+
+
+                    {% for item in stats.documents_by_type %}
+
+                    <div class="status-row">
+
+                        <span class="status-label">
+                            {{ item.document_type|default:"Unknown"|title }}
+                        </span>
+
+                        <span class="status-value">
+                            {{ item.count }}
+                        </span>
+
+                    </div>
+
+                    {% endfor %}
+
+
+                {% else %}
+
+                    <div class="empty-state">
+                        No document data available.
+                    </div>
+
+                {% endif %}
+
+
+            </div>
+
+        </section>
+
+
+    </div>
+
+
+    <!-- =====================================================
+         RECENT LEGAL DOCUMENTS
+         ===================================================== -->
+
+    <section
+        class="dashboard-card"
+        style="margin-bottom: 1.25rem;"
+    >
+
+
+        <div class="dashboard-card-header">
+
+            <div class="dashboard-card-title">
+
+                <div class="card-icon">
+                    <i class="fas fa-clock-rotate-left"></i>
+                </div>
+
+                <h2>
+                    Recent Legal Documents
+                </h2>
+
+            </div>
+
+
+            <a
+                href="{% url 'admin:legal_ai_legaldocument_changelist' %}"
+                class="dashboard-action secondary"
+            >
+                View All
+            </a>
+
+        </div>
+
+
+        <div class="dashboard-card-body">
+
+
+            {% if stats.recent_documents %}
+
+                <div class="dashboard-table-wrapper">
+
+                    <table class="dashboard-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Document
+                                </th>
+
+                                <th>
+                                    Type
+                                </th>
+
+                                <th>
+                                    Status
+                                </th>
+
+                                <th>
+                                    Uploaded
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+
+                            {% for document in stats.recent_documents %}
+
+                            <tr>
+
+
+                                <td>
+
+                                    <div class="document-title">
+
+                                        {{ document.title }}
+
+                                    </div>
+
+                                </td>
+
+
+                                <td>
+
+                                    {{ document.document_type|default:"—" }}
+
+                                </td>
+
+
+                                <td>
+
+
+                                    {% if document.processing_status == "completed" %}
+
+                                        <span class="status-badge status-success">
+
+                                            <i class="fas fa-check"></i>
+
+                                            Completed
+
+                                        </span>
+
+
+                                    {% elif document.processing_status == "failed" %}
+
+                                        <span class="status-badge status-danger">
+
+                                            <i class="fas fa-xmark"></i>
+
+                                            Failed
+
+                                        </span>
+
+
+                                    {% elif document.processing_status == "pending" %}
+
+                                        <span class="status-badge status-warning">
+
+                                            <i class="fas fa-clock"></i>
+
+                                            Pending
+
+                                        </span>
+
+
+                                    {% else %}
+
+                                        <span class="status-badge status-neutral">
+
+                                            {{ document.get_processing_status_display }}
+
+                                        </span>
+
+                                    {% endif %}
+
+
+                                </td>
+
+
+                                <td>
+
+                                    {{ document.uploaded_at|date:"M d, Y" }}
+
+                                </td>
+
+
+                            </tr>
+
+                            {% endfor %}
+
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+            {% else %}
+
+                <div class="empty-state">
+
+                    No legal documents have been uploaded yet.
+
+                </div>
+
+            {% endif %}
+
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         BOTTOM SECTION
+         ===================================================== -->
+
+    <div class="dashboard-grid two-columns">
+
+
+        <!-- RECENT KNOWLEDGE GAPS -->
+
+        <section class="dashboard-card">
+
+
+            <div class="dashboard-card-header">
+
+                <div class="dashboard-card-title">
+
+                    <div class="card-icon">
+                        <i class="fas fa-triangle-exclamation"></i>
+                    </div>
+
+                    <h2>
+                        Recent Knowledge Gaps
+                    </h2>
+
+                </div>
+
+
+                <a
+                    href="{% url 'admin:legal_ai_knowledgegap_changelist' %}"
+                    class="dashboard-action secondary"
+                >
+                    View All
+                </a>
+
+            </div>
+
+
+            <div class="dashboard-card-body">
+
+
+                {% if stats.recent_knowledge_gaps %}
+
+
+                    <div class="activity-list">
+
+
+                        {% for gap in stats.recent_knowledge_gaps %}
+
+                        <div class="activity-item">
+
+
+                            <div class="activity-icon">
+
+                                <i class="fas fa-question"></i>
+
+                            </div>
+
+
+                            <div class="activity-content">
+
+
+                                <p class="activity-title">
+
+                                    {{ gap.query|truncatechars:90 }}
+
+                                </p>
+
+
+                                <div class="activity-meta">
+
+                                    Status:
+                                    {{ gap.get_status_display }}
+
+                                    ·
+
+                                    {{ gap.created_at|date:"M d, Y H:i" }}
+
+                                </div>
+
+
+                            </div>
+
+
+                        </div>
+
+                        {% endfor %}
+
+
+                    </div>
+
+
+                {% else %}
+
+                    <div class="empty-state">
+
+                        No knowledge gaps found.
+
+                    </div>
+
+                {% endif %}
+
+
+            </div>
+
+        </section>
+
+
+        <!-- NOTIFICATIONS -->
+
+        <section class="dashboard-card">
+
+
+            <div class="dashboard-card-header">
+
+                <div class="dashboard-card-title">
+
+                    <div class="card-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+
+                    <h2>
+                        Recent Notifications
+                    </h2>
+
+                </div>
+
+
+                <a
+                    href="{% url 'admin:legal_ai_adminnotification_changelist' %}"
+                    class="dashboard-action secondary"
+                >
+                    View All
+                </a>
+
+            </div>
+
+
+            <div class="dashboard-card-body">
+
+
+                {% if stats.recent_notifications %}
+
+
+                    <div class="activity-list">
+
+
+                        {% for notification in stats.recent_notifications %}
+
+                        <div class="activity-item">
+
+
+                            <div class="activity-icon">
+
+                                <i class="fas fa-bell"></i>
+
+                            </div>
+
+
+                            <div class="activity-content">
+
+
+                                <p class="activity-title">
+
+                                    {{ notification.title }}
+
+                                </p>
+
+
+                                <div class="activity-meta">
+
+                                    {{ notification.severity|title }}
+
+                                    ·
+
+                                    {{ notification.created_at|date:"M d, Y H:i" }}
+
+                                </div>
+
+
+                            </div>
+
+
+                        </div>
+
+                        {% endfor %}
+
+
+                    </div>
+
+
+                {% else %}
+
+                    <div class="empty-state">
+
+                        No notifications found.
+
+                    </div>
+
+                {% endif %}
+
+
+            </div>
+
+        </section>
+
+
+    </div>
+
+
+</div>
+
+{% endblock %}

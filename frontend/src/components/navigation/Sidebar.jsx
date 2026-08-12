@@ -60,10 +60,10 @@ const Sidebar = ({
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
     };
-    
+
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   // Filter state for Lawyers page
@@ -87,8 +87,8 @@ const Sidebar = ({
   // Handle ESC key to close sidebar drawer on mobile
   useEffect(() => {
     const handleEsc = (e) => {
-      if (e.key === "Escape" && sidebarState !== 'hidden' && isMobile) {
-        setSidebarState('hidden');
+      if (e.key === "Escape" && sidebarState !== "hidden" && isMobile) {
+        setSidebarState("hidden");
       }
     };
 
@@ -103,9 +103,13 @@ const Sidebar = ({
         setMenuOpen(null);
       }
       // Close drawer when clicking outside on mobile
-      if (isMobile && sidebarState !== 'hidden' && 
-          sidebarRef.current && !sidebarRef.current.contains(event.target)) {
-        setSidebarState('hidden');
+      if (
+        isMobile &&
+        sidebarState !== "hidden" &&
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target)
+      ) {
+        setSidebarState("hidden");
       }
     };
 
@@ -118,7 +122,7 @@ const Sidebar = ({
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (!isResizing) return;
-      
+
       const newWidth = e.clientX;
       if (newWidth >= 72 && newWidth <= 340) {
         setSidebarWidth(newWidth);
@@ -130,13 +134,13 @@ const Sidebar = ({
     };
 
     if (isResizing) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
     }
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isResizing, setSidebarWidth]);
 
@@ -215,6 +219,7 @@ const Sidebar = ({
     setMessages([]);
 
     navigate("/");
+    I;
   };
 
   const handleLogoutClick = () => {
@@ -224,10 +229,10 @@ const Sidebar = ({
   return (
     <>
       {/* Mobile/Tablet Overlay - z-index: 50 */}
-      {sidebarState !== 'hidden' && isMobile && (
+      {sidebarState !== "hidden" && isMobile && (
         <div
           className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm lg:hidden"
-          onClick={() => setSidebarState('hidden')}
+          onClick={() => setSidebarState("hidden")}
           aria-hidden="true"
         />
       )}
@@ -241,17 +246,17 @@ const Sidebar = ({
           top-0
           left-0
           flex
-          h-[100dvh]
+          h-dvh
           flex-col
           border-r
           border-slate-200
           bg-white
-          shadow-lg
+          shadow-sm
           transition-all
           duration-300
           ease-in-out
-          w-[280px]
-          ${sidebarState !== 'hidden' && isMobile ? "translate-x-0" : "-translate-x-full"}
+          w-70
+          ${sidebarState !== "hidden" && isMobile ? "translate-x-0" : "-translate-x-full"}
           lg:hidden
         `}
       >
@@ -272,7 +277,12 @@ const Sidebar = ({
                 </label>
                 <select
                   value={activeFilters.location}
-                  onChange={(e) => activeSetFilters({ ...activeFilters, location: e.target.value })}
+                  onChange={(e) =>
+                    activeSetFilters({
+                      ...activeFilters,
+                      location: e.target.value,
+                    })
+                  }
                   className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
                 >
                   <option value="">All Locations</option>
@@ -290,29 +300,40 @@ const Sidebar = ({
                   Practice Area
                 </label>
                 <div className="space-y-2">
-                  {["Civil", "Criminal", "Family", "Property", "Corporate"].map((area) => (
-                    <label key={area} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={activeFilters.practiceAreas.includes(area)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            activeSetFilters({
-                              ...activeFilters,
-                              practiceAreas: [...activeFilters.practiceAreas, area],
-                            });
-                          } else {
-                            activeSetFilters({
-                              ...activeFilters,
-                              practiceAreas: activeFilters.practiceAreas.filter((a) => a !== area),
-                            });
-                          }
-                        }}
-                        className="h-4 w-4 rounded border-slate-300 text-[#2563EB] focus:ring-[#2563EB]"
-                      />
-                      <span className="text-sm text-slate-700">{area}</span>
-                    </label>
-                  ))}
+                  {["Civil", "Criminal", "Family", "Property", "Corporate"].map(
+                    (area) => (
+                      <label
+                        key={area}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={activeFilters.practiceAreas.includes(area)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              activeSetFilters({
+                                ...activeFilters,
+                                practiceAreas: [
+                                  ...activeFilters.practiceAreas,
+                                  area,
+                                ],
+                              });
+                            } else {
+                              activeSetFilters({
+                                ...activeFilters,
+                                practiceAreas:
+                                  activeFilters.practiceAreas.filter(
+                                    (a) => a !== area,
+                                  ),
+                              });
+                            }
+                          }}
+                          className="h-4 w-4 rounded border-slate-300 text-[#2563EB] focus:ring-[#2563EB]"
+                        />
+                        <span className="text-sm text-slate-700">{area}</span>
+                      </label>
+                    ),
+                  )}
                 </div>
               </div>
 
@@ -323,12 +344,20 @@ const Sidebar = ({
                 </label>
                 <div className="space-y-2">
                   {["All", "0-2 years", "3-5 years", "5+ years"].map((exp) => (
-                    <label key={exp} className="flex items-center gap-2 cursor-pointer">
+                    <label
+                      key={exp}
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
                       <input
                         type="radio"
                         name="experience"
                         checked={activeFilters.experience === exp}
-                        onChange={() => activeSetFilters({ ...activeFilters, experience: exp })}
+                        onChange={() =>
+                          activeSetFilters({
+                            ...activeFilters,
+                            experience: exp,
+                          })
+                        }
                         className="h-4 w-4 border-slate-300 text-[#2563EB] focus:ring-[#2563EB]"
                       />
                       <span className="text-sm text-slate-700">{exp}</span>
@@ -339,7 +368,13 @@ const Sidebar = ({
 
               {/* Reset Filters Button */}
               <button
-                onClick={() => activeSetFilters({ location: "", practiceAreas: [], experience: "All" })}
+                onClick={() =>
+                  activeSetFilters({
+                    location: "",
+                    practiceAreas: [],
+                    experience: "All",
+                  })
+                }
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-all hover:bg-slate-50"
               >
                 Reset Filters
@@ -441,7 +476,9 @@ const Sidebar = ({
                         <button
                           onClick={() =>
                             setMenuOpen(
-                              menuOpen === conversation.id ? null : conversation.id,
+                              menuOpen === conversation.id
+                                ? null
+                                : conversation.id,
                             )
                           }
                           className="
@@ -514,8 +551,8 @@ const Sidebar = ({
         <div className="border-t border-slate-400/30 bg-gray-300 p-3 shrink-0">
           <button
             onClick={() => {
-              setSidebarState('hidden');
-              navigate("/dashboard/lawyers")
+              setSidebarState("hidden");
+              navigate("/dashboard/lawyers");
             }}
             className="sidebar-link w-full"
           >
@@ -547,75 +584,98 @@ const Sidebar = ({
           transition-all
           duration-300
           ease-in-out
-          h-[100dvh]
+          h-dvh
           shrink-0
           z-30
-          ${sidebarState === 'collapsed' ? 'w-[72px]' : 'w-[280px]'}
+          ${sidebarState === "collapsed" ? "w-18" : "w-70"}
         `}
       >
-          {/* Collapse Button */}
-          <div className="border-b border-slate-200 bg-white px-3 py-2">
-            <button
-              onClick={() => setSidebarState(sidebarState === 'expanded' ? 'collapsed' : 'expanded')}
-              className="w-full flex items-center justify-center rounded-lg p-2 transition hover:bg-slate-100"
-              aria-label={sidebarState === 'collapsed' ? "Expand sidebar" : "Collapse sidebar"}
+        {/* Collapse Button */}
+        <div className="border-b border-slate-200 bg-white px-3 py-2">
+          <button
+            onClick={() =>
+              setSidebarState(
+                sidebarState === "expanded" ? "collapsed" : "expanded",
+              )
+            }
+            className="w-full flex items-center justify-center rounded-lg p-2 transition hover:bg-slate-100"
+            aria-label={
+              sidebarState === "collapsed"
+                ? "Expand sidebar"
+                : "Collapse sidebar"
+            }
+          >
+            <Menu size={18} className="text-slate-600" />
+          </button>
+        </div>
+
+        {/* New Chat Button - Hide on Lawyers page */}
+        {currentPage !== "lawyers" && (
+          <div className={`p-4 ${sidebarState === "collapsed" ? "px-2" : ""}`}>
+            <Button
+              onClick={handleNewChat}
+              className="w-full rounded-xl bg-[#2563EB] py-3 font-medium text-white shadow-sm transition-all hover:bg-primary-hover hover:shadow-md"
             >
-              <Menu size={18} className="text-slate-600" />
-            </button>
-          </div>
-
-          {/* New Chat Button - Hide on Lawyers page */}
-          {currentPage !== "lawyers" && (
-            <div className={`p-4 ${sidebarState === 'collapsed' ? 'px-2' : ''}`}>
-              <Button
-                onClick={handleNewChat}
-                className="w-full rounded-xl bg-[#2563EB] py-3 font-medium text-white shadow-sm transition-all hover:bg-[#1D4ED8] hover:shadow-md"
+              <div
+                className={`flex items-center ${sidebarState === "collapsed" ? "justify-center" : "justify-center gap-2"}`}
               >
-                <div className={`flex items-center ${sidebarState === 'collapsed' ? 'justify-center' : 'justify-center gap-2'}`}>
-                  <MessageSquarePlus size={18} />
-                  <span className={sidebarState === 'collapsed' ? 'hidden' : ''}>New Chat</span>
-                </div>
-              </Button>
-            </div>
-          )}
+                <MessageSquarePlus size={18} />
+                <span className={sidebarState === "collapsed" ? "hidden" : ""}>
+                  New Chat
+                </span>
+              </div>
+            </Button>
+          </div>
+        )}
 
-          {/* Show Filters on Lawyers page, otherwise show Chat components */}
-          {currentPage === "lawyers" ? (
-            <>
-              {/* Filters Panel */}
-              <div className={`border-b border-slate-200 bg-white p-5 ${sidebarState === 'collapsed' ? 'hidden' : ''}`}>
-                <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">
-                  Filters
-                </h3>
+        {/* Show Filters on Lawyers page, otherwise show Chat components */}
+        {currentPage === "lawyers" ? (
+          <>
+            {/* Filters Panel */}
+            <div
+              className={`border-b border-slate-200 bg-white p-5 ${sidebarState === "collapsed" ? "hidden" : ""}`}
+            >
+              <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">
+                Filters
+              </h3>
 
-                {/* Location Filter */}
-                <div className="mb-5">
-                  <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
-                    <MapPin size={16} />
-                    Location
-                  </label>
-                  <select
-                    value={activeFilters.location}
-                    onChange={(e) => activeSetFilters({ ...activeFilters, location: e.target.value })}
-                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
-                  >
-                    <option value="">All Locations</option>
-                    {availableLocations?.map((loc) => (
-                      <option key={loc} value={loc}>
-                        {loc}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              {/* Location Filter */}
+              <div className="mb-5">
+                <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                  <MapPin size={16} />
+                  Location
+                </label>
+                <select
+                  value={activeFilters.location}
+                  onChange={(e) =>
+                    activeSetFilters({
+                      ...activeFilters,
+                      location: e.target.value,
+                    })
+                  }
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]"
+                >
+                  <option value="">All Locations</option>
+                  {availableLocations?.map((loc) => (
+                    <option key={loc} value={loc}>
+                      {loc}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                {/* Practice Area Filter */}
-                <div className="mb-5">
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Practice Area
-                  </label>
-                  <div className="space-y-2">
-                    {["Civil", "Criminal", "Family", "Property", "Corporate"].map((area) => (
-                      <label key={area} className="flex items-center gap-2 cursor-pointer">
+              {/* Practice Area Filter */}
+              <div className="mb-5">
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Practice Area
+                </label>
+                <div className="space-y-2">
+                  {["Civil", "Criminal", "Family", "Property", "Corporate"].map(
+                    (area) => (
+                      <label
+                        key={area}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
                         <input
                           type="checkbox"
                           checked={activeFilters.practiceAreas.includes(area)}
@@ -623,12 +683,18 @@ const Sidebar = ({
                             if (e.target.checked) {
                               activeSetFilters({
                                 ...activeFilters,
-                                practiceAreas: [...activeFilters.practiceAreas, area],
+                                practiceAreas: [
+                                  ...activeFilters.practiceAreas,
+                                  area,
+                                ],
                               });
                             } else {
                               activeSetFilters({
                                 ...activeFilters,
-                                practiceAreas: activeFilters.practiceAreas.filter((a) => a !== area),
+                                practiceAreas:
+                                  activeFilters.practiceAreas.filter(
+                                    (a) => a !== area,
+                                  ),
                               });
                             }
                           }}
@@ -636,23 +702,32 @@ const Sidebar = ({
                         />
                         <span className="text-sm text-slate-700">{area}</span>
                       </label>
-                    ))}
-                  </div>
+                    ),
+                  )}
                 </div>
+              </div>
 
-                {/* Experience Filter */}
-                <div className="mb-5">
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+              {/* Experience Filter */}
+              <div className="mb-5">
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
                   Experience
                 </label>
                 <div className="space-y-2">
                   {["All", "0-2 years", "3-5 years", "5+ years"].map((exp) => (
-                    <label key={exp} className="flex items-center gap-2 cursor-pointer">
+                    <label
+                      key={exp}
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
                       <input
                         type="radio"
                         name="experience"
                         checked={activeFilters.experience === exp}
-                        onChange={() => activeSetFilters({ ...activeFilters, experience: exp })}
+                        onChange={() =>
+                          activeSetFilters({
+                            ...activeFilters,
+                            experience: exp,
+                          })
+                        }
                         className="h-4 w-4 border-slate-300 text-[#2563EB] focus:ring-[#2563EB]"
                       />
                       <span className="text-sm text-slate-700">{exp}</span>
@@ -663,7 +738,13 @@ const Sidebar = ({
 
               {/* Reset Filters Button */}
               <button
-                onClick={() => activeSetFilters({ location: "", practiceAreas: [], experience: "All" })}
+                onClick={() =>
+                  activeSetFilters({
+                    location: "",
+                    practiceAreas: [],
+                    experience: "All",
+                  })
+                }
                 className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-all hover:bg-slate-50"
               >
                 Reset Filters
@@ -673,7 +754,9 @@ const Sidebar = ({
         ) : (
           <>
             {/* Conversation History - Scrollable */}
-            <div className={`flex flex-col ${sidebarState === 'collapsed' ? 'hidden' : ''} flex-1 overflow-hidden`}>
+            <div
+              className={`flex flex-col ${sidebarState === "collapsed" ? "hidden" : ""} flex-1 overflow-hidden`}
+            >
               <div className="flex items-center gap-2 px-5 pt-5 pb-3 shrink-0">
                 <History size={15} className="text-slate-500" />
 
@@ -741,7 +824,9 @@ const Sidebar = ({
                         <button
                           onClick={() =>
                             setMenuOpen(
-                              menuOpen === conversation.id ? null : conversation.id,
+                              menuOpen === conversation.id
+                                ? null
+                                : conversation.id,
                             )
                           }
                           className="
@@ -811,34 +896,42 @@ const Sidebar = ({
         )}
 
         {/* Footer - Fixed at bottom */}
-        <div className={`border-t border-slate-200 bg-white p-3 shrink-0 ${sidebarState === 'collapsed' ? "px-2" : ""}`}>
+        <div
+          className={`border-t border-slate-200 bg-white p-3 shrink-0 ${sidebarState === "collapsed" ? "px-2" : ""}`}
+        >
           <button
             onClick={() => navigate("/dashboard")}
-            className={`sidebar-link w-full ${sidebarState === 'collapsed' ? "justify-center" : ""}`}
+            className={`sidebar-link w-full ${sidebarState === "collapsed" ? "justify-center" : ""}`}
             title="Dashboard"
           >
             <Home size={18} />
-            <span className={sidebarState !== 'collapsed' ? "" : "hidden"}>Dashboard</span>
+            <span className={sidebarState !== "collapsed" ? "" : "hidden"}>
+              Dashboard
+            </span>
           </button>
 
           {currentPage !== "lawyers" && (
             <button
               onClick={() => navigate("/dashboard/lawyers")}
-              className={`sidebar-link w-full ${sidebarState === 'collapsed' ? "justify-center" : ""}`}
+              className={`sidebar-link w-full ${sidebarState === "collapsed" ? "justify-center" : ""}`}
               title="Lawyers Directory"
             >
               <Users size={18} />
-              <span className={sidebarState !== 'collapsed' ? "" : "hidden"}>Lawyers Directory</span>
+              <span className={sidebarState !== "collapsed" ? "" : "hidden"}>
+                Lawyers Directory
+              </span>
             </button>
           )}
 
           <button
             onClick={handleLogoutClick}
-            className={`sidebar-link w-full text-red-600 hover:bg-red-50 ${sidebarState === 'collapsed' ? "justify-center" : ""}`}
+            className={`sidebar-link w-full text-red-600 hover:bg-red-50 ${sidebarState === "collapsed" ? "justify-center" : ""}`}
             title="Logout"
           >
             <LogOut size={18} />
-            <span className={sidebarState !== 'collapsed' ? "" : "hidden"}>Logout</span>
+            <span className={sidebarState !== "collapsed" ? "" : "hidden"}>
+              Logout
+            </span>
           </button>
         </div>
       </aside>
@@ -846,13 +939,13 @@ const Sidebar = ({
       {/* Delete Conversation Modal */}
 
       {showDeleteModal && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40">
+        <div className="fixed inset-0 z-70 flex items-center justify-center bg-black/40">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
             {/* Header */}
 
             <div className="mb-6 flex items-center gap-4">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-100">
-                <Trash2 size={26} className="text-[#C30A1C]" />
+                <Trash2 size={26} className="text-accent" />
               </div>
 
               <div>
@@ -888,9 +981,9 @@ const Sidebar = ({
                 onClick={handleDeleteConversation}
                 className="
                   rounded-xl
-                  bg-[#C30A1C]
+                  bg-accent
                   text-white
-                  hover:bg-[#a70917]
+                  hover:bg-accent-hover
                 "
               >
                 Delete
@@ -903,13 +996,13 @@ const Sidebar = ({
       {/* Logout Modal */}
 
       {showLogoutModal && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40">
+        <div className="fixed inset-0 z-70 flex items-center justify-center bg-black/40">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
             {/* Header */}
 
             <div className="mb-6 flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#C30A1C]/10">
-                <LogOut size={26} className="text-[#C30A1C]" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10">
+                <LogOut size={26} className="text-accent" />
               </div>
 
               <div>
@@ -940,9 +1033,9 @@ const Sidebar = ({
                 onClick={handleLogout}
                 className="
                   rounded-xl
-                  bg-[#C30A1C]
+                  bg-accent
                   text-white
-                  hover:bg-[#a70917]
+                  hover:bg-accent-hover
                 "
               >
                 Logout
